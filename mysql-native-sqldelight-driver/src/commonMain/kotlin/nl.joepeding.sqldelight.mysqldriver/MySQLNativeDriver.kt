@@ -1,4 +1,4 @@
-package nl.joepeding.mysqldriver//package nl.joepeding.mysqldriver
+package nl.joepeding.sqldelight.mysqldriver
 //
 //import app.cash.sqldelight.*
 //import app.cash.sqldelight.db.*

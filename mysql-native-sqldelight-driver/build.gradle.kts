@@ -28,6 +28,10 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                api(libs.sqldelight.runtime)
+            }
+        }
     }
 }
