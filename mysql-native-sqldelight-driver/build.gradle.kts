@@ -33,5 +33,10 @@ kotlin {
                 api(libs.sqldelight.runtime)
             }
         }
+        val commonTest by getting {
+            dependencies {
+                api(libs.sqldelight.runtime)
+            }
+        }
     }
 }
