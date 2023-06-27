@@ -2,6 +2,7 @@ import kotlinx.cinterop.*
 import mysql.*
 import nl.joepeding.sqldelight.mysqldriver.MySQLNativeDriver
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 @Test
@@ -15,6 +16,24 @@ fun testSuccessfulQuery() {
     )
     val result = driver.execute(null, "INSERT into blaat(foo) VALUES('cinterop');", 0)
     assertEquals(0L, result.value)
+}
+
+@Test
+fun testConnectionProblem() {
+    // TODO: Rewrite to use assertFailsWith
+    try {
+        val driver = MySQLNativeDriver(
+            "127.1.2.3",
+            "onsdb",
+            "root",
+            "",
+            3306
+        )
+        assert(false) { "Connection should have thrown an error for non-existent host" }
+    } catch (e: Exception) {
+        requireNotNull(e.message)
+        assertContains(e.message!!, "Can't connect to MySQL server on '127.1.2.3'")
+    }
 }
 
 @Test

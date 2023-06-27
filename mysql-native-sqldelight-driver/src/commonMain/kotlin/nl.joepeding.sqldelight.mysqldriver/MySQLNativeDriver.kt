@@ -92,6 +92,12 @@ public fun MySQLNativeDriver(
         unix_socket = null,
         clientflag = 1,
     )
+
+    val errMsg = mysql_error(conn)
+    if (errMsg?.toKString()?.isEmpty() == false) {
+        println("Connection error: ${errMsg.toKString()}")
+        throw Exception("Connection problem: ${errMsg.toKString()}")
+    }
     // TODO: Check connection success
     return MySQLNativeDriver(
         conn!!,
