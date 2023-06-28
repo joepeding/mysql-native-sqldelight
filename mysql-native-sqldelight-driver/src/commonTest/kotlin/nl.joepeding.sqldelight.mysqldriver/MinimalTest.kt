@@ -6,6 +6,7 @@ import nl.joepeding.sqldelight.mysqldriver.MySQLNativeDriver
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class MinimalTest {
     @Test
@@ -23,8 +24,7 @@ class MinimalTest {
 
     @Test
     fun testConnectionProblem() {
-        // TODO: Rewrite to use assertFailsWith
-        try {
+        val e = assertFailsWith<IllegalArgumentException>("Connection to 127.1.2.3 should not succeed.") {
             val driver = MySQLNativeDriver(
                 "127.1.2.3",
                 "onsdb",
@@ -32,11 +32,9 @@ class MinimalTest {
                 "",
                 3306
             )
-            assert(false) { "Connection should have thrown an error for non-existent host" }
-        } catch (e: Exception) {
-            requireNotNull(e.message)
-            assertContains(e.message!!, "Can't connect to MySQL server on '127.1.2.3'")
         }
+        requireNotNull(e.message)
+        assertContains(e.message!!, "Can't connect to MySQL server on '127.1.2.3'")
     }
 
     @Test
