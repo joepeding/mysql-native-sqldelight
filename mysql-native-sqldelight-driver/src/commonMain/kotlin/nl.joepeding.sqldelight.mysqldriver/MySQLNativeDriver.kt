@@ -31,10 +31,9 @@ public class MySQLNativeDriver(
             mysql_query(conn, sql)
 
             // Check error
-            val errNo = mysql_errno(conn)
-            if (errNo != 0.toUInt()) {
-                println("errNo: $errNo")
-                return QueryResult.Value(333L)
+            if (conn.hasError()) {
+                println("Query error: ${conn.error()}")
+                return QueryResult.Value(333L) // TODO: Throw exception
             }
 
             // TODO: Implement query result parsing
@@ -82,7 +81,8 @@ public fun MySQLNativeDriver(
 ): MySQLNativeDriver {
     mysql_library_init!!.invoke(0, null, null)
     val conn = mysql_init(null)
-    val connResult = mysql_real_connect(
+    mysql_options(conn, mysql_option.MYSQL_OPT_CONNECT_TIMEOUT, cValuesOf(10))
+    mysql_real_connect(
         conn,
         host = host,
         user = user,
@@ -93,14 +93,15 @@ public fun MySQLNativeDriver(
         clientflag = 1,
     )
 
-    val errMsg = mysql_error(conn)
-    if (errMsg?.toKString()?.isEmpty() == false) {
-        println("Connection error: ${errMsg.toKString()}")
-        throw Exception("Connection problem: ${errMsg.toKString()}")
-    }
-    // TODO: Check connection success
+    require(!conn.hasError()) { conn.error() }
     return MySQLNativeDriver(
         conn!!,
 //        listenerSupport = listenerSupport
     )
 }
+
+internal fun CPointer<MYSQL>?.hasError(): Boolean =
+    mysql_errno(this) != 0.toUInt()
+
+internal fun CPointer<MYSQL>?.error(): String =
+    mysql_error(this)!!.toKString()
