@@ -1,9 +1,23 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
 repositories {
     mavenCentral()
+}
+
+tasks.withType(AbstractTestTask::class.java).configureEach {
+    testLogging {
+        info.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
 }
 
 kotlin {
