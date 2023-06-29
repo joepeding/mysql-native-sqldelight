@@ -27,20 +27,20 @@ public class MySQLNativeDriver(
         parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<Long> {
-        memScoped {
-            mysql_query(conn, sql)
+        val stmt = mysql_stmt_init(conn)
+        mysql_stmt_prepare(stmt, sql, sql.length.toULong())
+        mysql_stmt_execute(stmt)
 
-            // Check error
-            if (conn.hasError()) {
-                println("Query error: ${conn.error()}")
-                return QueryResult.Value(333L) // TODO: Throw exception
-            }
-
-            // TODO: Implement query result parsing
-
-            // Return dummy query result
-            return QueryResult.Value(0L)
+        // Check error
+        if (stmt.hasError()) {
+            println("Query error: ${stmt.error()}")
+            return QueryResult.Value(333L) // TODO: Throw exception
         }
+
+        // TODO: Implement query result parsing
+
+        // Return dummy query result
+        return QueryResult.Value(0L)
     }
 
     override fun <R> executeQuery(
@@ -105,3 +105,9 @@ internal fun CPointer<MYSQL>?.hasError(): Boolean =
 
 internal fun CPointer<MYSQL>?.error(): String =
     mysql_error(this)!!.toKString()
+
+internal fun CPointer<MYSQL_STMT>?.hasError(): Boolean =
+    mysql_stmt_errno(this) != 0.toUInt()
+
+internal fun CPointer<MYSQL_STMT>?.error(): String =
+    mysql_stmt_error(this)!!.toKString()
