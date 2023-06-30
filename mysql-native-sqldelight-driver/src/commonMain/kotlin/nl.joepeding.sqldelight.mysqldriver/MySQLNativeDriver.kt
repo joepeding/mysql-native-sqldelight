@@ -8,11 +8,15 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import kotlinx.cinterop.*
 import mysql.*
+import platform.posix.memset
+import platform.posix.stat
 
 public class MySQLNativeDriver(
     val conn: CPointer<MYSQL>,
 //    listenerSupport: ListenerSupport
 ) : SqlDriver {
+    private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
+
     override fun addListener(listener: Query.Listener, queryKeys: Array<String>) {
         TODO("Not yet implemented")
     }
@@ -27,16 +31,27 @@ public class MySQLNativeDriver(
         parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<Long> {
-        val stmt = mysql_stmt_init(conn)
-        mysql_stmt_prepare(stmt, sql, sql.length.toULong())
-        mysql_stmt_execute(stmt)
+        val statement = identifier?.let {
+            statementCache.getOrPut(it) {
+                MySQLPreparedStatement.prepareStatement(conn, sql)
+            }
+        } ?: MySQLPreparedStatement.prepareStatement(conn, sql)
+
+        binders?.let {
+            MySQLPreparedStatement(statement).apply(it)
+        } ?: mysql_stmt_execute(statement)
+
+
+        // Execute
+//        mysql_stmt_execute(statement)
 
         // Check error
-        if (stmt.hasError()) {
-            println("Query error: ${stmt.error()}")
-            return QueryResult.Value(333L) // TODO: Throw exception
+        if (statement.hasError()) {
+            println("Query error: ${statement.error()}")
+            return QueryResult.Value(-1L) // TODO: Throw exception
         }
 
+        // Get results
         // TODO: Implement query result parsing
 
         // Return dummy query result

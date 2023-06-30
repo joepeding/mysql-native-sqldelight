@@ -2,7 +2,6 @@ package nl.joepeding.sqldelight.mysqldriver
 
 import kotlinx.cinterop.*
 import mysql.*
-import nl.joepeding.sqldelight.mysqldriver.MySQLNativeDriver
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -10,7 +9,7 @@ import kotlin.test.assertFailsWith
 
 class MinimalTest {
     @Test
-    fun testSuccessfulQuery() {
+    fun testSuccessfulPlainQuery() {
         val driver = MySQLNativeDriver(
             "localhost",
             "onsdb",
@@ -19,6 +18,21 @@ class MinimalTest {
             3306
         )
         val result = driver.execute(null, "INSERT into blaat(foo) VALUES('cinterop');", 0)
+        assertEquals(0L, result.value)
+    }
+
+    @Test
+    fun testSuccessfulPreparedStatement() {
+        val driver = MySQLNativeDriver(
+            "localhost",
+            "onsdb",
+            "root",
+            "",
+            3306
+        )
+        val result = driver.execute(null, "INSERT into blaat(foo) VALUES(?);", 1) {
+            bindString(1, "cinterop")
+        }
         assertEquals(0L, result.value)
     }
 
