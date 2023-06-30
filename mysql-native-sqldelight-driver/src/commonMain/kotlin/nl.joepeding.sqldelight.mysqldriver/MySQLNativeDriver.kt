@@ -31,19 +31,21 @@ public class MySQLNativeDriver(
         parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<Long> {
+        // Load prepared statement from cache, or prepare it
         val statement = identifier?.let {
             statementCache.getOrPut(it) {
                 MySQLPreparedStatement.prepareStatement(conn, sql)
             }
         } ?: MySQLPreparedStatement.prepareStatement(conn, sql)
 
-        binders?.let {
-            MySQLPreparedStatement(statement).apply(it)
-        } ?: mysql_stmt_execute(statement)
-
+        // Bind parameters, if any
+        val bindings = binders?.let { MySQLPreparedStatement(statement).apply(it) }
 
         // Execute
-//        mysql_stmt_execute(statement)
+        mysql_stmt_execute(statement)
+
+        // Clear memory for bindings, if any
+        bindings?.clear()
 
         // Check error
         if (statement.hasError()) {
@@ -96,7 +98,7 @@ public fun MySQLNativeDriver(
 ): MySQLNativeDriver {
     mysql_library_init!!.invoke(0, null, null)
     val conn = mysql_init(null)
-    mysql_options(conn, mysql_option.MYSQL_OPT_CONNECT_TIMEOUT, cValuesOf(10))
+    mysql_options(conn, mysql_option.MYSQL_OPT_CONNECT_TIMEOUT, cValuesOf(2))
     mysql_real_connect(
         conn,
         host = host,
