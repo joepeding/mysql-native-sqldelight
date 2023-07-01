@@ -2,36 +2,47 @@ package nl.joepeding.sqldelight.mysqldriver
 
 import kotlinx.cinterop.*
 import mysql.*
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.*
 
 class MinimalTest {
-    @Test
-    fun testSuccessfulPlainQuery() {
-        val driver = MySQLNativeDriver(
+    private final val VARCHAR_FIELD = "vcfield"
+    private final val BOOLEAN_FIELD = "boolfield"
+    private lateinit var driver: MySQLNativeDriver
+    @BeforeTest // @BeforeClass not supported
+    fun setup() {
+        driver = MySQLNativeDriver(
             "localhost",
             "onsdb",
             "root",
             "",
             3306
         )
-        val result = driver.execute(null, "INSERT into blaat(foo) VALUES('cinterop');", 0)
+//        driver.execute(null, "DROP TABLE blaat;", 0) // Not enabled by default, convenient to be able to view DB
+        driver.execute(null, "CREATE TABLE IF NOT EXISTS `blaat`(" +
+                "`$VARCHAR_FIELD` VARCHAR(255) DEFAULT NULL," +
+                "`$BOOLEAN_FIELD` BOOLEAN NOT NULL DEFAULT 0" +
+                ");", 0)
+    }
+
+    @Test
+    fun testSuccessfulPlainQuery() {
+        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD) VALUES('testSuccessfulPlainQuery');", 0)
         assertEquals(0L, result.value)
     }
 
     @Test
     fun testSuccessfulPreparedStatement() {
-        val driver = MySQLNativeDriver(
-            "localhost",
-            "onsdb",
-            "root",
-            "",
-            3306
-        )
-        val result = driver.execute(null, "INSERT into blaat(foo) VALUES(?);", 1) {
-            bindString(1, "cinterop")
+        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD) VALUES(?);", 1) {
+            bindString(0, "testSuccessfulPreparedStatement")
+        }
+        assertEquals(0L, result.value)
+    }
+
+    @Test
+    fun testSuccessfulPreparedStatementWithBooleans() {
+        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD, $BOOLEAN_FIELD) VALUES(?, ?);", 2) {
+            bindString(0, "testSuccessfulPreparedStatementWithBooleans")
+            bindBoolean(1, true)
         }
         assertEquals(0L, result.value)
     }
@@ -70,7 +81,7 @@ class MinimalTest {
                 1
             )
             println("MysqlConnected")
-            val result = mysql_query(mysqlconnected, "INSERT into blaat(fool) VALUES('cinterop');")
+            val result = mysql_query(mysqlconnected, "INSERT into blaat(fakefield) VALUES('cinterop');")
             println("MysqlQuery")
             assertEquals(1, result) // 0 return code indicates success
         }

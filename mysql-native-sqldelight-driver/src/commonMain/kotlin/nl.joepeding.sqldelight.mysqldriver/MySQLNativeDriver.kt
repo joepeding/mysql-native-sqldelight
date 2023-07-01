@@ -39,9 +39,10 @@ public class MySQLNativeDriver(
         } ?: MySQLPreparedStatement.prepareStatement(conn, sql)
 
         // Bind parameters, if any
-        val bindings = binders?.let { MySQLPreparedStatement(statement).apply(it) }
+        val bindings = binders?.let { MySQLPreparedStatement(statement, parameters).apply(it) }
 
         // Execute
+        bindings?.let { mysql_stmt_bind_param(statement, it.bindings) }
         mysql_stmt_execute(statement)
 
         // Clear memory for bindings, if any

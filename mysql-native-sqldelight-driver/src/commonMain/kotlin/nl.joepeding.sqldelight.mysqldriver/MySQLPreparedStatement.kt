@@ -5,21 +5,17 @@ import kotlinx.cinterop.*
 import mysql.*
 
 public class MySQLPreparedStatement(
-    private val statement: CPointer<MYSQL_STMT>
+    private val statement: CPointer<MYSQL_STMT>,
+    private val parameters: Int
 ): SqlPreparedStatement {
     private val memScope: Arena = Arena()
-
-    fun bind(index: Int, value: String?, oid: UInt) {
-        val bind = memScope.alloc<MYSQL_BIND>()
-        bind.buffer_type = oid
-        bind.param_number = index.toUInt()
-        bind.buffer = (value ?: "").cstr.getPointer(memScope)
-        bind.buffer_length = (value ?: "").length.toULong()
-        mysql_stmt_bind_param(statement, bind.ptr)
-    }
+    public val bindings = memScope.allocArray<MYSQL_BIND>(parameters)
 
     override fun bindBoolean(index: Int, boolean: Boolean?) {
-        TODO("Not yet implemented")
+        val boolString = (if (boolean == true) { 1 } else { -1 }).toString()
+        bindings[index].buffer_type = MYSQL_TYPE_STRING
+        bindings[index].buffer = boolString.cstr.getPointer(memScope)
+        bindings[index].buffer_length = boolString.length.toULong()
     }
 
     override fun bindBytes(index: Int, bytes: ByteArray?) {
@@ -35,7 +31,9 @@ public class MySQLPreparedStatement(
     }
 
     override fun bindString(index: Int, string: String?) {
-        bind(index, string, MYSQL_TYPE_STRING)
+        bindings[index].buffer_type = MYSQL_TYPE_STRING
+        bindings[index].buffer = (string ?: "").cstr.getPointer(memScope)
+        bindings[index].buffer_length = (string ?: "").length.toULong()
     }
 
     public fun clear() {
