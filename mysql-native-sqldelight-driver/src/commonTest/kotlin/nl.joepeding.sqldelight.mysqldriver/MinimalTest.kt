@@ -7,6 +7,9 @@ import kotlin.test.*
 class MinimalTest {
     private final val VARCHAR_FIELD = "vcfield"
     private final val BOOLEAN_FIELD = "boolfield"
+    private final val BYTES_FIELD = "bytesfield"
+    private final val DOUBLE_FIELD = "doublefield"
+    private final val LONG_FIELD = "longfield"
     private lateinit var driver: MySQLNativeDriver
     @BeforeTest // @BeforeClass not supported
     fun setup() {
@@ -20,29 +23,41 @@ class MinimalTest {
 //        driver.execute(null, "DROP TABLE blaat;", 0) // Not enabled by default, convenient to be able to view DB
         driver.execute(null, "CREATE TABLE IF NOT EXISTS `blaat`(" +
                 "`$VARCHAR_FIELD` VARCHAR(255) DEFAULT NULL," +
-                "`$BOOLEAN_FIELD` BOOLEAN NOT NULL DEFAULT 0" +
+                "`$BOOLEAN_FIELD` BOOLEAN NOT NULL DEFAULT 0," +
+                "`$BYTES_FIELD` BLOB NOT NULL," +
+                "`$DOUBLE_FIELD` DOUBLE NOT NULL DEFAULT 0.0," +
+                "`$LONG_FIELD` BIGINT(40) NOT NULL DEFAULT 0" +
                 ");", 0)
     }
 
     @Test
     fun testSuccessfulPlainQuery() {
-        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD) VALUES('testSuccessfulPlainQuery');", 0)
+        val result = driver.execute(
+            null,
+            "INSERT into blaat($VARCHAR_FIELD, $BYTES_FIELD) " +
+                    "VALUES('testSuccessfulPlainQuery', '${"binary"}');",
+            0)
         assertEquals(0L, result.value)
     }
 
     @Test
-    fun testSuccessfulPreparedStatement() {
-        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD) VALUES(?);", 1) {
-            bindString(0, "testSuccessfulPreparedStatement")
-        }
-        assertEquals(0L, result.value)
-    }
-
-    @Test
-    fun testSuccessfulPreparedStatementWithBooleans() {
-        val result = driver.execute(null, "INSERT into blaat($VARCHAR_FIELD, $BOOLEAN_FIELD) VALUES(?, ?);", 2) {
-            bindString(0, "testSuccessfulPreparedStatementWithBooleans")
+    fun testSuccessfulPreparedStatementWithAllTypes() {
+        val result = driver.execute(
+            null,
+            "INSERT into blaat(" +
+                    "$VARCHAR_FIELD, " +
+                    "$BOOLEAN_FIELD, " +
+                    "$BYTES_FIELD, " +
+                    "$DOUBLE_FIELD, " +
+                    "$LONG_FIELD" +
+                    ") VALUES(?, ?, ?, ?, ?);",
+            2
+        ) {
+            bindString(0, "testSuccessfulPreparedStatementWithAllTypes")
             bindBoolean(1, true)
+            bindBytes(2, "binary".encodeToByteArray())
+            bindDouble(3, 3.14)
+            bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
         assertEquals(0L, result.value)
     }

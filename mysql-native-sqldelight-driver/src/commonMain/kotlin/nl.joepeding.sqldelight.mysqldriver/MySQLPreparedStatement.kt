@@ -12,22 +12,34 @@ public class MySQLPreparedStatement(
     public val bindings = memScope.allocArray<MYSQL_BIND>(parameters)
 
     override fun bindBoolean(index: Int, boolean: Boolean?) {
-        val boolString = (if (boolean == true) { 1 } else { -1 }).toString()
-        bindings[index].buffer_type = MYSQL_TYPE_STRING
-        bindings[index].buffer = boolString.cstr.getPointer(memScope)
-        bindings[index].buffer_length = boolString.length.toULong()
+        val cRepresentation = memScope.alloc<BooleanVar>()
+        cRepresentation.value = boolean ?: false
+        bindings[index].buffer_type = MYSQL_TYPE_SHORT
+        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer_length = sizeOf<BooleanVar>().toULong()
     }
 
     override fun bindBytes(index: Int, bytes: ByteArray?) {
-        TODO("Not yet implemented")
+        val cRepresenation = (bytes ?: ByteArray(0)).toCValues()
+        bindings[index].buffer_type = MYSQL_TYPE_BLOB
+        bindings[index].buffer = cRepresenation.getPointer(memScope)
+        bindings[index].buffer_length = cRepresenation.size.toULong()
     }
 
     override fun bindDouble(index: Int, double: Double?) {
-        TODO("Not yet implemented")
+        val cRepresentation = memScope.alloc<DoubleVar>()
+        cRepresentation.value = double ?: 0.0
+        bindings[index].buffer_type = MYSQL_TYPE_DOUBLE
+        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer_length = sizeOf<DoubleVar>().toULong()
     }
 
     override fun bindLong(index: Int, long: Long?) {
-        TODO("Not yet implemented")
+        val cRepresentation = memScope.alloc<LongVarOf<Long>>()
+        cRepresentation.value = long ?: 0L
+        bindings[index].buffer_type = MYSQL_TYPE_LONGLONG
+        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer_length = sizeOf<LongVarOf<Long>>().toULong()
     }
 
     override fun bindString(index: Int, string: String?) {
