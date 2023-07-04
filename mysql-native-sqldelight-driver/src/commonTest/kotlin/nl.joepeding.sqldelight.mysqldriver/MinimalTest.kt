@@ -37,7 +37,7 @@ class MinimalTest {
             "INSERT into blaat($VARCHAR_FIELD, $BYTES_FIELD) " +
                     "VALUES('testSuccessfulPlainQuery', '${"binary"}');",
             0)
-        assertEquals(0L, result.value)
+        assertEquals(1L, result.value)
     }
 
     @Test
@@ -59,7 +59,7 @@ class MinimalTest {
             bindDouble(3, 3.14)
             bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
-        assertEquals(0L, result.value)
+        assertEquals(1L, result.value)
     }
 
     @Test

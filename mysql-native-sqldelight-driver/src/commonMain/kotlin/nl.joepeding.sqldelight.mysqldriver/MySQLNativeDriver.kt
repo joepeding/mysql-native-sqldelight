@@ -49,16 +49,10 @@ public class MySQLNativeDriver(
         bindings?.clear()
 
         // Check error
-        if (statement.hasError()) {
-            println("Query error: ${statement.error()}")
-            return QueryResult.Value(-1L) // TODO: Throw exception
-        }
-
-        // Get results
-        // TODO: Implement query result parsing
+        require(!statement.hasError()) { statement.error() }
 
         // Return dummy query result
-        return QueryResult.Value(0L)
+        return QueryResult.Value(mysql_stmt_affected_rows(statement).toLong())
     }
 
     override fun <R> executeQuery(
