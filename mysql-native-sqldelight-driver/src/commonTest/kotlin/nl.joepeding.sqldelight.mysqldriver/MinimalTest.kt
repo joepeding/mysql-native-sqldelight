@@ -2,6 +2,7 @@ package nl.joepeding.sqldelight.mysqldriver
 
 import kotlinx.cinterop.*
 import mysql.*
+import kotlin.random.Random
 import kotlin.test.*
 
 class MinimalTest {
@@ -63,6 +64,66 @@ class MinimalTest {
     }
 
     @Test
+    fun testInsertThenSelectBooleanValue() {
+        val stringVal = "testInsertThenSelectBooleanValue-" + randomString()
+        // Insert
+        var insert = driver.execute(
+            null,
+            "INSERT into blaat(" +
+                    "$VARCHAR_FIELD, " +
+                    "$BOOLEAN_FIELD, " +
+                    "$BYTES_FIELD, " +
+                    "$DOUBLE_FIELD, " +
+                    "$LONG_FIELD" +
+                    ") VALUES(?, ?, ?, ?, ?);",
+            5
+        ) {
+            bindString(0, stringVal)
+            bindBoolean(1, true)
+            bindBytes(2, "binarybinary".encodeToByteArray())
+            bindDouble(3, 3.14)
+            bindLong(4, (Int.MAX_VALUE.toLong() * 5))
+        }
+        assertEquals(1L, insert.value, "First insert failed")
+        insert = driver.execute(
+            null,
+            "INSERT into blaat(" +
+                    "$VARCHAR_FIELD, " +
+                    "$BOOLEAN_FIELD, " +
+                    "$BYTES_FIELD, " +
+                    "$DOUBLE_FIELD, " +
+                    "$LONG_FIELD" +
+                    ") VALUES(?, ?, ?, ?, ?);",
+            5
+        ) {
+            bindString(0, stringVal)
+            bindBoolean(1, false)
+            bindBytes(2, "binarybinary".encodeToByteArray())
+            bindDouble(3, 14.3)
+            bindLong(4, (Int.MAX_VALUE.toLong() * 5))
+        }
+        assertEquals(1L, insert.value, "Second insert failed")
+
+        // Fetch
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $BOOLEAN_FIELD, $VARCHAR_FIELD, $BYTES_FIELD, $DOUBLE_FIELD, $LONG_FIELD FROM blaat WHERE $VARCHAR_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                buildList {
+                    while (it.next()) {
+                        add(it.getBoolean(0))
+                    }
+                }
+            }
+        )
+        assertEquals(2, result.value.size)
+        assertEquals(1, result.value.count { it == true } )
+        assertEquals(1, result.value.count { it == false } )
+    }
+
+    @Test
     fun testConnectionProblem() {
         val e = assertFailsWith<IllegalArgumentException>("Connection to 127.1.2.3 should not succeed.") {
             val driver = MySQLNativeDriver(
@@ -100,5 +161,13 @@ class MinimalTest {
             println("MysqlQuery")
             assertEquals(1, result) // 0 return code indicates success
         }
+    }
+
+    fun randomString(lenght: Int = 6): String = (1..lenght)
+        .map { Random.nextInt(0, charPool.size).let { charPool[it] } }
+        .joinToString { "" }
+
+    companion object {
+        val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
     }
 }
