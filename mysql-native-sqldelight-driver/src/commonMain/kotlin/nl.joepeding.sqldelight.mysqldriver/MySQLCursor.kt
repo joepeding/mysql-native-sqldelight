@@ -82,7 +82,8 @@ class MySQLCursor(
     }
 
     override fun getLong(index: Int): Long? {
-        TODO("Not yet implemented")
+        println("Fetch-b: ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
+        return buffers[index].reinterpret<LongVar>().value
     }
 
     override fun getString(index: Int): String? {
@@ -98,8 +99,7 @@ class MySQLCursor(
             0 -> true
             MYSQL_NO_DATA -> false
             1 -> throw Exception("Error fetching next row: ${mysql_stmt_error(stmt)?.toKString()}")
-//            MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
-            MYSQL_DATA_TRUNCATED -> true
+            MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
             else -> throw Exception("Unexpected result for `mysql_stmt_fetch`: $it")
         }
     }

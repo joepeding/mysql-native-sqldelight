@@ -64,7 +64,7 @@ class MinimalTest {
     }
 
     @Test
-    fun testInsertThenSelectBooleanValue() {
+    fun testTwoInsertsThenCheckValues() {
         val stringVal = "testInsertThenSelectBooleanValue-" + randomString()
         // Insert
         var insert = driver.execute(
@@ -100,27 +100,37 @@ class MinimalTest {
             bindBoolean(1, false)
             bindBytes(2, "binarybinary".encodeToByteArray())
             bindDouble(3, 14.3)
-            bindLong(4, (Int.MAX_VALUE.toLong() * 5))
+            bindLong(4, (Int.MAX_VALUE.toLong() * 6))
         }
         assertEquals(1L, insert.value, "Second insert failed")
 
         // Fetch
         val result = driver.executeQuery(
             identifier = null,
-            sql = "SELECT $BOOLEAN_FIELD, $VARCHAR_FIELD, $BYTES_FIELD, $DOUBLE_FIELD, $LONG_FIELD FROM blaat WHERE $VARCHAR_FIELD = '$stringVal';",
+            sql = "SELECT $VARCHAR_FIELD, $BOOLEAN_FIELD, $BYTES_FIELD, $DOUBLE_FIELD, $LONG_FIELD FROM blaat WHERE $VARCHAR_FIELD = '$stringVal';",
             parameters = 0,
             binders = null,
             mapper = {
                 buildList {
                     while (it.next()) {
-                        add(it.getBoolean(0))
+                        add(
+                            MinimalRow(
+                                "",
+                                it.getBoolean(1) ?: false,
+                                ByteArray(0),
+                                0.0,
+                                it.getLong(4) ?: 0L
+                            )
+                        )
                     }
                 }
             }
         )
         assertEquals(2, result.value.size)
-        assertEquals(1, result.value.count { it == true } )
-        assertEquals(1, result.value.count { it == false } )
+        assertEquals(1, result.value.count { it.bool == true } )
+        assertEquals(1, result.value.count { it.bool == false } )
+        assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 5) } )
+        assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 6) } )
     }
 
     @Test
@@ -165,7 +175,16 @@ class MinimalTest {
 
     fun randomString(lenght: Int = 6): String = (1..lenght)
         .map { Random.nextInt(0, charPool.size).let { charPool[it] } }
-        .joinToString { "" }
+        .joinToString("")
+
+
+    data class MinimalRow(
+        val varchar: String,
+        val bool: Boolean,
+        val bytes: ByteArray,
+        val double: Double,
+        val long: Long
+    )
 
     companion object {
         val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
