@@ -80,7 +80,10 @@ public class MySQLNativeDriver(
         // Check error
         require(!statement.hasError()) { statement.error().also { println(it) } }
 
-        return QueryResult.Value(mapper(MySQLCursor(statement)))
+        val cursor = MySQLCursor(statement)
+        val returnVal = mapper(cursor)
+        cursor.clear()
+        return QueryResult.Value(returnVal)
     }
 
     override fun newTransaction(): QueryResult<Transacter.Transaction> {
@@ -120,7 +123,7 @@ public fun MySQLNativeDriver(
         db = database,
         port = port.toUInt(),
         unix_socket = null,
-        clientflag = 1,
+        clientflag = 1u,
     )
 
     require(!conn.hasError()) { conn.error() }

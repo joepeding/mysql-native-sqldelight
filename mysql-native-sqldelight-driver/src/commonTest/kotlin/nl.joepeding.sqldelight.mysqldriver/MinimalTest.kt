@@ -85,6 +85,7 @@ class MinimalTest {
             bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
         assertEquals(1L, insert.value, "First insert failed")
+        println("First insert succeeded")
         insert = driver.execute(
             null,
             "INSERT into blaat(" +
@@ -103,6 +104,7 @@ class MinimalTest {
             bindLong(4, (Int.MAX_VALUE.toLong() * 6))
         }
         assertEquals(1L, insert.value, "Second insert failed")
+        println("Second insert succeeded")
 
         // Fetch
         val result = driver.executeQuery(
@@ -113,24 +115,34 @@ class MinimalTest {
             mapper = {
                 buildList {
                     while (it.next()) {
+                        println("MinimalRow")
                         add(
                             MinimalRow(
                                 "",
                                 it.getBoolean(1) ?: false,
                                 ByteArray(0),
-                                0.0,
+                                it.getDouble(3) ?: 0.0,
                                 it.getLong(4) ?: 0L
                             )
                         )
                     }
+                    println("Mapping done")
                 }
             }
         )
-        assertEquals(2, result.value.size)
-        assertEquals(1, result.value.count { it.bool == true } )
-        assertEquals(1, result.value.count { it.bool == false } )
-        assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 5) } )
-        assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 6) } )
+        println("QUERY PAST")
+        try {
+            assertEquals(2, result.value.size)
+            assertEquals(1, result.value.count { it.bool }, "No bool true found")
+            assertEquals(1, result.value.count { !it.bool }, "No bool false found" )
+            assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 5) }, "No 5 * Int.MAX_VALUE found" )
+            assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 6) }, "No 6 * Int.MAX_VALUE found" )
+            assertEquals(1, result.value.count { it.double == 3.14 }, "No 3.14 found" )
+            assertEquals(1, result.value.count { it.double == 14.3 }, "No 14.3 found" )
+        } catch (e: Throwable) {
+            println(e.message)
+            throw e
+        }
     }
 
     @Test
@@ -162,9 +174,9 @@ class MinimalTest {
                 "root",
                 "",
                 "onsdb",
-                3306,
+                3306u,
                 null,
-                1
+                1u
             )
             println("MysqlConnected")
             val result = mysql_query(mysqlconnected, "INSERT into blaat(fakefield) VALUES('cinterop');")

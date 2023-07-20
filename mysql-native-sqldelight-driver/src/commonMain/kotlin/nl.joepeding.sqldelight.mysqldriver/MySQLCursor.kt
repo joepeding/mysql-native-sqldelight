@@ -10,18 +10,17 @@ class MySQLCursor(
 ) : SqlCursor {
     val memScope: Arena = Arena()
     val buffers: MutableList<CVariable> = mutableListOf()
-    lateinit var bindings: CArrayPointer<MYSQL_BIND>
-
+    var bindings: CArrayPointer<MYSQL_BIND>
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
         val fieldCount: Int = mysql_num_fields(meta).toInt()
-        bindings = memScope.allocArray<MYSQL_BIND>(fieldCount)
+        bindings = memScope.allocArray(fieldCount)
         (0 until fieldCount).forEach { index ->
             val field = mysql_fetch_field(meta)!!.pointed
             println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.length}")
             val buffer = when (field.type) {
-                MYSQL_TYPE_TINY,
+                MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>()
                 MYSQL_TYPE_SHORT,
                 MYSQL_TYPE_LONG,
                 MYSQL_TYPE_INT24,
@@ -66,11 +65,8 @@ class MySQLCursor(
     }
 
     override fun getBoolean(index: Int): Boolean? {
-        println("Fetch: ${buffers[index].reinterpret<LongVar>().value}")
-        return buffers[index].reinterpret<LongVar>().value != 0L
-//        println("prefetch: ${(buffers[index] as LongVarOf<*>).value}")
-//        require(buffers[index] is LongVarOf<*>) { "Column with index $index is not castable to boolean" }
-//        return (buffers[index] as LongVarOf<*>).value != 0L
+        println("Fetch bool: ${buffers[index].reinterpret<ByteVar>().value}")
+        return buffers[index].reinterpret<ByteVar>().value != 0.toUInt().toByte()
     }
 
     override fun getBytes(index: Int): ByteArray? {
@@ -78,11 +74,12 @@ class MySQLCursor(
     }
 
     override fun getDouble(index: Int): Double? {
-        TODO("Not yet implemented")
+        println("Fetch double: ${buffers[index].reinterpret<DoubleVar>().value}")
+        return buffers[index].reinterpret<DoubleVar>().value
     }
 
     override fun getLong(index: Int): Long? {
-        println("Fetch-b: ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
+        println("Fetch long: ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
         return buffers[index].reinterpret<LongVar>().value
     }
 
@@ -95,12 +92,19 @@ class MySQLCursor(
     //       Might not be a problem if the conversion from C-type to Kotlin-type also copies.
     // TODO: Better exception type?
     override fun next(): Boolean = mysql_stmt_fetch(stmt).let {
-        when (it) {
+        println("Next row")
+        return@let when (it) {
             0 -> true
             MYSQL_NO_DATA -> false
             1 -> throw Exception("Error fetching next row: ${mysql_stmt_error(stmt)?.toKString()}")
             MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
             else -> throw Exception("Unexpected result for `mysql_stmt_fetch`: $it")
         }
+    }
+
+    fun clear(): Unit {
+        println("Clearing")
+//        memScope.clear() // TODO: Probably needs clearing, but atm it causes a crash
+        println("Clearing done")
     }
 }
