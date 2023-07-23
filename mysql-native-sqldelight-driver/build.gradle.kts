@@ -29,7 +29,6 @@ kotlin {
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
-    println("HIERHIERHIER\n$hostOs")
 
     nativeTarget.apply {
         binaries {

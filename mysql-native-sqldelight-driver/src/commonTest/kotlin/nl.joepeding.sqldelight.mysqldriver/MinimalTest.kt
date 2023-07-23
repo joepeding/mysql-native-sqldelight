@@ -85,7 +85,7 @@ class MinimalTest {
             bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
         assertEquals(1L, insert.value, "First insert failed")
-        println("First insert succeeded")
+
         insert = driver.execute(
             null,
             "INSERT into blaat(" +
@@ -104,7 +104,6 @@ class MinimalTest {
             bindLong(4, (Int.MAX_VALUE.toLong() * 6))
         }
         assertEquals(1L, insert.value, "Second insert failed")
-        println("Second insert succeeded")
 
         // Fetch
         val result = driver.executeQuery(
@@ -115,7 +114,6 @@ class MinimalTest {
             mapper = {
                 buildList {
                     while (it.next()) {
-                        println("MinimalRow")
                         add(
                             MinimalRow(
                                 "",
@@ -126,11 +124,9 @@ class MinimalTest {
                             )
                         )
                     }
-                    println("Mapping done")
                 }
             }
         )
-        println("QUERY PAST")
         try {
             assertEquals(2, result.value.size)
             assertEquals(1, result.value.count { it.bool }, "No bool true found")
@@ -163,11 +159,8 @@ class MinimalTest {
     @Test
     fun testErrorQuery() {
         memScoped {
-            println("Teststart")
             mysql_library_init!!.invoke(0, null, null)
-            println("LibraryInit")
             val mysequel = mysql_init(null)
-            println("MysqlInit")
             val mysqlconnected = mysql_real_connect(
                 mysequel,
                 "localhost",
@@ -178,9 +171,7 @@ class MinimalTest {
                 null,
                 1u
             )
-            println("MysqlConnected")
             val result = mysql_query(mysqlconnected, "INSERT into blaat(fakefield) VALUES('cinterop');")
-            println("MysqlQuery")
             assertEquals(1, result) // 0 return code indicates success
         }
     }

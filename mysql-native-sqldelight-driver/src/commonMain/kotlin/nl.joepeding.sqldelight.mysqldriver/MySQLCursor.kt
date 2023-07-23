@@ -20,7 +20,7 @@ class MySQLCursor(
             val field = mysql_fetch_field(meta)!!.pointed
             println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.length}")
             val buffer = when (field.type) {
-                MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>()
+                MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>() // MySQL BOOLEAN is an alias for TINYINT(1)
                 MYSQL_TYPE_SHORT,
                 MYSQL_TYPE_LONG,
                 MYSQL_TYPE_INT24,
