@@ -116,7 +116,7 @@ class MinimalTest {
                     while (it.next()) {
                         add(
                             MinimalRow(
-                                "",
+                                it.getString(0) ?: "",
                                 it.getBoolean(1) ?: false,
                                 ByteArray(0),
                                 it.getDouble(3) ?: 0.0,
@@ -135,6 +135,7 @@ class MinimalTest {
             assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 6) }, "No 6 * Int.MAX_VALUE found" )
             assertEquals(1, result.value.count { it.double == 3.14 }, "No 3.14 found" )
             assertEquals(1, result.value.count { it.double == 14.3 }, "No 14.3 found" )
+            assertEquals(2, result.value.count { it.varchar.startsWith(stringVal) }, "String doesn't match") // TODO: switch to equals when length-issue is fixed
         } catch (e: Throwable) {
             println(e.message)
             throw e
@@ -144,7 +145,7 @@ class MinimalTest {
     @Test
     fun testConnectionProblem() {
         val e = assertFailsWith<IllegalArgumentException>("Connection to 127.1.2.3 should not succeed.") {
-            val driver = MySQLNativeDriver(
+            MySQLNativeDriver(
                 "127.1.2.3",
                 "onsdb",
                 "root",

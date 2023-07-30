@@ -3,7 +3,6 @@ package nl.joepeding.sqldelight.mysqldriver
 import app.cash.sqldelight.db.SqlCursor
 import kotlinx.cinterop.*
 import mysql.*
-import platform.darwin.StringPtrVar
 
 class MySQLCursor(
     val stmt: CPointer<MYSQL_STMT>
@@ -40,7 +39,7 @@ class MySQLCursor(
                 MYSQL_TYPE_YEAR -> TODO()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
-                MYSQL_TYPE_BLOB -> memScope.alloc<StringPtrVar>()
+                MYSQL_TYPE_BLOB -> memScope.allocArray<ByteVar>(1000).pointed // TODO: use max length of all rows
                 MYSQL_TYPE_SET -> TODO()
                 MYSQL_TYPE_ENUM -> TODO()
                 MYSQL_TYPE_GEOMETRY -> TODO()
@@ -84,7 +83,15 @@ class MySQLCursor(
     }
 
     override fun getString(index: Int): String? {
-        TODO("Not yet implemented")
+        val string = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
+            ?.pointed
+            ?.readValues<ByteVar>(1000, alignOf<ByteVar>()) // TODO: Use actual length of row
+            ?.getBytes()
+            ?.map { Char(it.toInt()) }
+            ?.joinToString("")
+            ?: return null
+        println("Fetch string: $string (${string.length} chars)")
+        return string
     }
 
     // TODO: Might need rebinding of buffers for every fetch, because otherwise the pass-by-reference nature
