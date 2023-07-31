@@ -69,7 +69,12 @@ class MySQLCursor(
     }
 
     override fun getBytes(index: Int): ByteArray? {
-        TODO("Not yet implemented")
+        val bytes = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
+            ?.pointed
+            ?.readValues<ByteVar>(1000, alignOf<ByteVar>()) // TODO: Use actual length of row
+            ?.getBytes()
+        println("Fetch bytes: ${bytes?.joinToString(" ") { it.toString(16) }}")
+        return bytes
     }
 
     override fun getDouble(index: Int): Double? {
@@ -87,10 +92,8 @@ class MySQLCursor(
             ?.pointed
             ?.readValues<ByteVar>(1000, alignOf<ByteVar>()) // TODO: Use actual length of row
             ?.getBytes()
-            ?.map { Char(it.toInt()) }
-            ?.joinToString("")
-            ?: return null
-        println("Fetch string: $string (${string.length} chars)")
+            ?.joinToString("") { Char(it.toInt()).toString() }
+        println("Fetch string: $string (${string?.length} chars)")
         return string
     }
 
@@ -111,7 +114,7 @@ class MySQLCursor(
 
     fun clear(): Unit {
         println("Clearing")
-//        memScope.clear() // TODO: Probably needs clearing, but atm it causes a crash
+        memScope.clear()
         println("Clearing done")
     }
 }

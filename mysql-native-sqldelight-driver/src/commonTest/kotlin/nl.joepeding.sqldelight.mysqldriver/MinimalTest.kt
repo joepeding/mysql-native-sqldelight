@@ -66,6 +66,7 @@ class MinimalTest {
     @Test
     fun testTwoInsertsThenCheckValues() {
         val stringVal = "testInsertThenSelectBooleanValue-" + randomString()
+        val byteArrayVal = "binarybinary".encodeToByteArray()
         // Insert
         var insert = driver.execute(
             null,
@@ -80,7 +81,7 @@ class MinimalTest {
         ) {
             bindString(0, stringVal)
             bindBoolean(1, true)
-            bindBytes(2, "binarybinary".encodeToByteArray())
+            bindBytes(2, byteArrayVal)
             bindDouble(3, 3.14)
             bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
@@ -99,7 +100,7 @@ class MinimalTest {
         ) {
             bindString(0, stringVal)
             bindBoolean(1, false)
-            bindBytes(2, "binarybinary".encodeToByteArray())
+            bindBytes(2, byteArrayVal)
             bindDouble(3, 14.3)
             bindLong(4, (Int.MAX_VALUE.toLong() * 6))
         }
@@ -118,7 +119,7 @@ class MinimalTest {
                             MinimalRow(
                                 it.getString(0) ?: "",
                                 it.getBoolean(1) ?: false,
-                                ByteArray(0),
+                                it.getBytes(2) ?: ByteArray(0),
                                 it.getDouble(3) ?: 0.0,
                                 it.getLong(4) ?: 0L
                             )
@@ -136,6 +137,8 @@ class MinimalTest {
             assertEquals(1, result.value.count { it.double == 3.14 }, "No 3.14 found" )
             assertEquals(1, result.value.count { it.double == 14.3 }, "No 14.3 found" )
             assertEquals(2, result.value.count { it.varchar.startsWith(stringVal) }, "String doesn't match") // TODO: switch to equals when length-issue is fixed
+            assertContentEquals(byteArrayVal, result.value[0].bytes.sliceArray(byteArrayVal.indices), "Bytes 1 don't match") // TODO: switch to equals when length-issue is fixed
+            assertContentEquals(byteArrayVal, result.value[1].bytes.sliceArray(byteArrayVal.indices), "Bytes 2 don't match") // TODO: switch to equals when length-issue is fixed
         } catch (e: Throwable) {
             println(e.message)
             throw e
