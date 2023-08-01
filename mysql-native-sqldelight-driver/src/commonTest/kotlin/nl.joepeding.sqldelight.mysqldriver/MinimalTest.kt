@@ -66,7 +66,8 @@ class MinimalTest {
     @Test
     fun testTwoInsertsThenCheckValues() {
         val stringVal = "testInsertThenSelectBooleanValue-" + randomString()
-        val byteArrayVal = "binarybinary".encodeToByteArray()
+        val byteArrayVal1 = "binarybinary".encodeToByteArray()
+        val byteArrayVal2 = "twinarytwinary".encodeToByteArray()
         // Insert
         var insert = driver.execute(
             null,
@@ -81,7 +82,7 @@ class MinimalTest {
         ) {
             bindString(0, stringVal)
             bindBoolean(1, true)
-            bindBytes(2, byteArrayVal)
+            bindBytes(2, byteArrayVal1)
             bindDouble(3, 3.14)
             bindLong(4, (Int.MAX_VALUE.toLong() * 5))
         }
@@ -100,7 +101,7 @@ class MinimalTest {
         ) {
             bindString(0, stringVal)
             bindBoolean(1, false)
-            bindBytes(2, byteArrayVal)
+            bindBytes(2, byteArrayVal2)
             bindDouble(3, 14.3)
             bindLong(4, (Int.MAX_VALUE.toLong() * 6))
         }
@@ -136,9 +137,9 @@ class MinimalTest {
             assertEquals(1, result.value.count { it.long == (Int.MAX_VALUE.toLong() * 6) }, "No 6 * Int.MAX_VALUE found" )
             assertEquals(1, result.value.count { it.double == 3.14 }, "No 3.14 found" )
             assertEquals(1, result.value.count { it.double == 14.3 }, "No 14.3 found" )
-            assertEquals(2, result.value.count { it.varchar.startsWith(stringVal) }, "String doesn't match") // TODO: switch to equals when length-issue is fixed
-            assertContentEquals(byteArrayVal, result.value[0].bytes.sliceArray(byteArrayVal.indices), "Bytes 1 don't match") // TODO: switch to equals when length-issue is fixed
-            assertContentEquals(byteArrayVal, result.value[1].bytes.sliceArray(byteArrayVal.indices), "Bytes 2 don't match") // TODO: switch to equals when length-issue is fixed
+            assertEquals(2, result.value.count { it.varchar == stringVal }, "String doesn't match")
+            assertEquals(1, result.value.count { it.bytes.contentEquals(byteArrayVal1) }, "Bytes 1 don't match")
+            assertEquals(1, result.value.count { it.bytes.contentEquals(byteArrayVal2) }, "Bytes 2 don't match")
         } catch (e: Throwable) {
             println(e.message)
             throw e

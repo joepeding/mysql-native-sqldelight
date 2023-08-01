@@ -7,14 +7,28 @@ import mysql.*
 class MySQLCursor(
     val stmt: CPointer<MYSQL_STMT>
 ) : SqlCursor {
-    val memScope: Arena = Arena()
-    val buffers: MutableList<CVariable> = mutableListOf()
-    var bindings: CArrayPointer<MYSQL_BIND>
+    private val memScope: Arena = Arena()
+    private val buffers: MutableList<CVariable> = mutableListOf()
+    private var bindings: CArrayPointer<MYSQL_BIND>
+    private var lengths: CArrayPointer<CPointerVar<ULongVar>>
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
         val fieldCount: Int = mysql_num_fields(meta).toInt()
+
+        // Buffer full response so max length of each column is known
+        require(
+            mysql_stmt_attr_set(
+                stmt,
+                enum_stmt_attr_type.STMT_ATTR_UPDATE_MAX_LENGTH,
+                memScope.alloc<BooleanVar>().also { it.value = true }.ptr
+            ) == 0.toByte()
+        ) { "Error setting MySQL statement attribute: ${ stmt.error() }"}
+        require(mysql_stmt_store_result(stmt) == 0) { "Error storing MySQL result: ${ stmt.error() }"}
+
+        // Create bindings
         bindings = memScope.allocArray(fieldCount)
+        lengths = memScope.allocArray(fieldCount)
         (0 until fieldCount).forEach { index ->
             val field = mysql_fetch_field(meta)!!.pointed
             println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.length}")
@@ -39,7 +53,7 @@ class MySQLCursor(
                 MYSQL_TYPE_YEAR -> TODO()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
-                MYSQL_TYPE_BLOB -> memScope.allocArray<ByteVar>(1000).pointed // TODO: use max length of all rows
+                MYSQL_TYPE_BLOB -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
                 MYSQL_TYPE_SET -> TODO()
                 MYSQL_TYPE_ENUM -> TODO()
                 MYSQL_TYPE_GEOMETRY -> TODO()
@@ -48,19 +62,12 @@ class MySQLCursor(
             }
             bindings[index].buffer_type = field.type
             bindings[index].buffer = buffer.ptr
-            bindings[index].buffer_length = (1000).toULong()
+            bindings[index].buffer_length = field.max_length
+            lengths[index] = memScope.alloc<ULongVar>().ptr
+            bindings[index].length = lengths[index]
             buffers.add(buffer)
         }
-        println("---")
-        println("vc: ${MYSQL_TYPE_STRING}")
-        println("short: ${MYSQL_TYPE_SHORT}")
-        println("bytes: ${MYSQL_TYPE_BLOB}")
-        println("double: ${MYSQL_TYPE_DOUBLE}")
-        println("longlong: ${MYSQL_TYPE_LONGLONG}")
-        println("tiny: ${MYSQL_TYPE_TINY}")
-
         mysql_stmt_bind_result(stmt, bindings)
-        println("Bound")
     }
 
     override fun getBoolean(index: Int): Boolean? {
@@ -71,7 +78,7 @@ class MySQLCursor(
     override fun getBytes(index: Int): ByteArray? {
         val bytes = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
             ?.pointed
-            ?.readValues<ByteVar>(1000, alignOf<ByteVar>()) // TODO: Use actual length of row
+            ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
         println("Fetch bytes: ${bytes?.joinToString(" ") { it.toString(16) }}")
         return bytes
@@ -90,7 +97,7 @@ class MySQLCursor(
     override fun getString(index: Int): String? {
         val string = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
             ?.pointed
-            ?.readValues<ByteVar>(1000, alignOf<ByteVar>()) // TODO: Use actual length of row
+            ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
             ?.joinToString("") { Char(it.toInt()).toString() }
         println("Fetch string: $string (${string?.length} chars)")
