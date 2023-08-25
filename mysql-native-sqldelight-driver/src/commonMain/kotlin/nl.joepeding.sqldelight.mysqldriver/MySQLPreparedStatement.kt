@@ -12,43 +12,54 @@ public class MySQLPreparedStatement(
     public val bindings = memScope.allocArray<MYSQL_BIND>(parameters)
 
     override fun bindBoolean(index: Int, boolean: Boolean?) {
-        val cRepresentation = memScope.alloc<BooleanVar>()
-        cRepresentation.value = boolean ?: false
+        println("Binding boolean")
         bindings[index].buffer_type = MYSQL_TYPE_SHORT
-        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer = boolean?.let {
+            memScope.alloc<BooleanVarOf<Boolean>>().apply { value = boolean }.ptr
+        }
         bindings[index].buffer_length = sizeOf<BooleanVar>().toULong()
+        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (boolean == null).toByte() }.ptr
     }
 
     override fun bindBytes(index: Int, bytes: ByteArray?) {
-        val cRepresenation = (bytes ?: ByteArray(0)).toCValues()
+        println("Binding bytes")
+        val cRepresentation = bytes?.toCValues()
         bindings[index].buffer_type = MYSQL_TYPE_BLOB
-        bindings[index].buffer = cRepresenation.getPointer(memScope)
-        bindings[index].buffer_length = cRepresenation.size.toULong()
+        bindings[index].buffer = cRepresentation?.getPointer(memScope)
+        bindings[index].buffer_length = cRepresentation?.size?.toULong() ?: 0.toULong()
+        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (bytes == null).toByte() }.ptr
     }
 
     override fun bindDouble(index: Int, double: Double?) {
-        val cRepresentation = memScope.alloc<DoubleVar>()
-        cRepresentation.value = double ?: 0.0
+        println("Binding double")
         bindings[index].buffer_type = MYSQL_TYPE_DOUBLE
-        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer = double?.let {
+            memScope.alloc<DoubleVar>().apply { value = double }.ptr
+        }
         bindings[index].buffer_length = sizeOf<DoubleVar>().toULong()
+        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (double == null).toByte() }.ptr
     }
 
     override fun bindLong(index: Int, long: Long?) {
-        val cRepresentation = memScope.alloc<LongVarOf<Long>>()
-        cRepresentation.value = long ?: 0L
+        println("Binding long")
         bindings[index].buffer_type = MYSQL_TYPE_LONGLONG
-        bindings[index].buffer = cRepresentation.ptr
+        bindings[index].buffer = long?.let {
+            memScope.alloc<LongVarOf<Long>>().apply { value = long }.ptr
+        }
         bindings[index].buffer_length = sizeOf<LongVarOf<Long>>().toULong()
+        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (long == null).toByte() }.ptr
     }
 
     override fun bindString(index: Int, string: String?) {
+        println("Binding string")
         bindings[index].buffer_type = MYSQL_TYPE_STRING
-        bindings[index].buffer = (string ?: "").cstr.getPointer(memScope)
-        bindings[index].buffer_length = (string ?: "").length.toULong()
+        bindings[index].buffer = string?.cstr?.getPointer(memScope)
+        bindings[index].buffer_length = (string?.length ?: 0).toULong()
+        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (string == null).toByte() }.ptr
     }
 
     public fun clear() {
+        println("Clearing")
         memScope.clear()
     }
 

@@ -11,6 +11,7 @@ class MySQLCursor(
     private val buffers: MutableList<CVariable> = mutableListOf()
     private var bindings: CArrayPointer<MYSQL_BIND>
     private var lengths: CArrayPointer<CPointerVar<ULongVar>>
+    private var nulls: CArrayPointer<CPointerVar<ByteVar>>
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
@@ -29,6 +30,7 @@ class MySQLCursor(
         // Create bindings
         bindings = memScope.allocArray(fieldCount)
         lengths = memScope.allocArray(fieldCount)
+        nulls = memScope.allocArray(fieldCount)
         (0 until fieldCount).forEach { index ->
             val field = mysql_fetch_field(meta)!!.pointed
             println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.length}")
@@ -65,13 +67,16 @@ class MySQLCursor(
             bindings[index].buffer_length = field.max_length
             lengths[index] = memScope.alloc<ULongVar>().ptr
             bindings[index].length = lengths[index]
+            nulls[index] = memScope.alloc<ByteVar>().ptr
+            bindings[index].is_null = nulls[index]
             buffers.add(buffer)
         }
         mysql_stmt_bind_result(stmt, bindings)
     }
 
     override fun getBoolean(index: Int): Boolean? {
-        println("Fetch bool: ${buffers[index].reinterpret<ByteVar>().value}")
+        println("Fetch bool (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<ByteVar>().value}")
+        if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<ByteVar>().value != 0.toUInt().toByte()
     }
 
@@ -80,17 +85,20 @@ class MySQLCursor(
             ?.pointed
             ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
-        println("Fetch bytes: ${bytes?.joinToString(" ") { it.toString(16) }}")
+        println("Fetch bytes (null=${isNullByIndex(index)}): ${bytes?.joinToString(" ") { it.toString(16) }}")
+        if (isNullByIndex(index)) { return null }
         return bytes
     }
 
     override fun getDouble(index: Int): Double? {
-        println("Fetch double: ${buffers[index].reinterpret<DoubleVar>().value}")
+        println("Fetch double (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<DoubleVar>().value}")
+        if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<DoubleVar>().value
     }
 
     override fun getLong(index: Int): Long? {
-        println("Fetch long: ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
+        println("Fetch long (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
+        if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<LongVar>().value
     }
 
@@ -100,7 +108,8 @@ class MySQLCursor(
             ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
             ?.joinToString("") { Char(it.toInt()).toString() }
-        println("Fetch string: $string (${string?.length} chars)")
+        println("Fetch string (null = ${isNullByIndex(index)}): $string (${string?.length} chars)")
+        if (isNullByIndex(index)) { return null }
         return string
     }
 
@@ -118,6 +127,8 @@ class MySQLCursor(
             else -> throw Exception("Unexpected result for `mysql_stmt_fetch`: $it")
         }
     }
+
+    private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
 
     fun clear(): Unit {
         println("Clearing")
