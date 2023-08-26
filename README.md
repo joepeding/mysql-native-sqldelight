@@ -1,6 +1,6 @@
 # mysql-native-sqldelight
 
-A Kotlin native Mysql driver using libmysqlclient. Initial work inspired on [postgres-native-sqldelight](https://github.com/hfhbd/postgres-native-sqldelight).
+A Kotlin native MySQL driver using libmysqlclient. Initial work inspired on [postgres-native-sqldelight](https://github.com/hfhbd/postgres-native-sqldelight).
 
 You can use the driver with SQLDelight, but this is not required.
 

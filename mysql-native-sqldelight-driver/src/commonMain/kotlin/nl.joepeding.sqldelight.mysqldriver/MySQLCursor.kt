@@ -113,9 +113,6 @@ class MySQLCursor(
         return string
     }
 
-    // TODO: Might need rebinding of buffers for every fetch, because otherwise the pass-by-reference nature
-    //       of kotlin will overwrite (or: the `get`-functions here should return copies of what's in the buffers.
-    //       Might not be a problem if the conversion from C-type to Kotlin-type also copies.
     // TODO: Better exception type?
     override fun next(): Boolean = mysql_stmt_fetch(stmt).let {
         println("Next row")
