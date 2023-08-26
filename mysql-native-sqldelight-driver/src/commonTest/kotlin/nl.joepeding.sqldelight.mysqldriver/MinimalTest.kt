@@ -187,6 +187,53 @@ class MinimalTest {
     }
 
     @Test
+    fun `MySQL BIT field type can be read to Long and set with ByteArray`() {
+        val stringVal = "testBitField-" + randomString()
+
+        // Create table
+        driver.execute(null, "CREATE TABLE IF NOT EXISTS `bitfieldtest`(" +
+                "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                "`bitfield` BIT(6) DEFAULT NULL" +
+                ");", 0)
+
+        // Insert
+        var insert = driver.execute(
+            null,
+            "INSERT into bitfieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "bitfield" +
+                    ") VALUES(?, ?);", // Bit field can also be set with `b'000111'`
+            6
+        ) {
+            bindString(0, stringVal)
+            bindBytes(1, ByteArray(1) { 7.toByte() } )
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, bitfield, BIN(bitfield) as bitfieldstring FROM bitfieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                buildList {
+                    while (it.next()) {
+                        add(
+                            Pair(
+                                it.getLong(1),
+                                it.getString(2)
+                            )
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals(7L, result.value.first().first, "Inserted BIT value does not match to expected Long")
+        assertEquals("111", result.value.first().second, "Inserted BIT value does not match to expected string conversion")
+        println("Insert1")
+    }
+
+    @Test
     fun testConnectionProblem() {
         val e = assertFailsWith<IllegalArgumentException>("Connection to 127.1.2.3 should not succeed.") {
             MySQLNativeDriver(

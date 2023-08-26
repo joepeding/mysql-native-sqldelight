@@ -46,7 +46,7 @@ class MySQLCursor(
                 MYSQL_TYPE_NEWDECIMAL,
                 MYSQL_TYPE_FLOAT,
                 MYSQL_TYPE_DOUBLE -> memScope.alloc<DoubleVar>()
-                MYSQL_TYPE_BIT -> TODO()
+                MYSQL_TYPE_BIT -> memScope.alloc<LongVar>()
                 MYSQL_TYPE_DATE -> TODO()
                 MYSQL_TYPE_TIME,
                 MYSQL_TYPE_TIME2 -> TODO()
@@ -108,7 +108,7 @@ class MySQLCursor(
             ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
             ?.joinToString("") { Char(it.toInt()).toString() }
-        println("Fetch string (null = ${isNullByIndex(index)}): $string (${string?.length} chars)")
+        println("Fetch string (null=${isNullByIndex(index)}): $string (${string?.length} chars)")
         if (isNullByIndex(index)) { return null }
         return string
     }
