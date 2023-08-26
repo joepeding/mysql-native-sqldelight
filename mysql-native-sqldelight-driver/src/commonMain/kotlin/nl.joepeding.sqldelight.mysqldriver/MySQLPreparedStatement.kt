@@ -13,49 +13,59 @@ public class MySQLPreparedStatement(
 
     override fun bindBoolean(index: Int, boolean: Boolean?) {
         println("Binding boolean")
-        bindings[index].buffer_type = MYSQL_TYPE_SHORT
-        bindings[index].buffer = boolean?.let {
-            memScope.alloc<BooleanVarOf<Boolean>>().apply { value = boolean }.ptr
+        bindings[index].apply {
+            buffer_type = MYSQL_TYPE_SHORT
+            buffer = boolean?.let {
+                memScope.alloc<BooleanVarOf<Boolean>>().apply { value = boolean }.ptr
+            }
+            buffer_length = sizeOf<BooleanVar>().toULong()
+            is_null = memScope.alloc<ByteVar>().apply { value = (boolean == null).toByte() }.ptr
         }
-        bindings[index].buffer_length = sizeOf<BooleanVar>().toULong()
-        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (boolean == null).toByte() }.ptr
     }
 
     override fun bindBytes(index: Int, bytes: ByteArray?) {
         println("Binding bytes")
         val cRepresentation = bytes?.toCValues()
-        bindings[index].buffer_type = MYSQL_TYPE_BLOB
-        bindings[index].buffer = cRepresentation?.getPointer(memScope)
-        bindings[index].buffer_length = cRepresentation?.size?.toULong() ?: 0.toULong()
-        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (bytes == null).toByte() }.ptr
+        bindings[index].apply {
+            buffer_type = MYSQL_TYPE_BLOB
+            buffer = cRepresentation?.getPointer(memScope)
+            buffer_length = cRepresentation?.size?.toULong() ?: 0.toULong()
+            is_null = memScope.alloc<ByteVar>().apply { value = (bytes == null).toByte() }.ptr
+        }
     }
 
     override fun bindDouble(index: Int, double: Double?) {
         println("Binding double")
-        bindings[index].buffer_type = MYSQL_TYPE_DOUBLE
-        bindings[index].buffer = double?.let {
-            memScope.alloc<DoubleVar>().apply { value = double }.ptr
+        bindings[index].apply {
+            buffer_type = MYSQL_TYPE_DOUBLE
+            buffer = double?.let {
+                memScope.alloc<DoubleVar>().apply { value = double }.ptr
+            }
+            buffer_length = sizeOf<DoubleVar>().toULong()
+            is_null = memScope.alloc<ByteVar>().apply { value = (double == null).toByte() }.ptr
         }
-        bindings[index].buffer_length = sizeOf<DoubleVar>().toULong()
-        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (double == null).toByte() }.ptr
     }
 
     override fun bindLong(index: Int, long: Long?) {
         println("Binding long")
-        bindings[index].buffer_type = MYSQL_TYPE_LONGLONG
-        bindings[index].buffer = long?.let {
-            memScope.alloc<LongVarOf<Long>>().apply { value = long }.ptr
+        bindings[index].apply {
+            buffer_type = MYSQL_TYPE_LONGLONG
+            buffer = long?.let {
+                memScope.alloc<LongVarOf<Long>>().apply { value = long }.ptr
+            }
+            buffer_length = sizeOf<LongVarOf<Long>>().toULong()
+            is_null = memScope.alloc<ByteVar>().apply { value = (long == null).toByte() }.ptr
         }
-        bindings[index].buffer_length = sizeOf<LongVarOf<Long>>().toULong()
-        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (long == null).toByte() }.ptr
     }
 
     override fun bindString(index: Int, string: String?) {
         println("Binding string")
-        bindings[index].buffer_type = MYSQL_TYPE_STRING
-        bindings[index].buffer = string?.cstr?.getPointer(memScope)
-        bindings[index].buffer_length = (string?.length ?: 0).toULong()
-        bindings[index].is_null = memScope.alloc<ByteVar>().apply { value = (string == null).toByte() }.ptr
+        bindings[index].apply {
+            buffer_type = MYSQL_TYPE_STRING
+            buffer = string?.cstr?.getPointer(memScope)
+            buffer_length = (string?.length ?: 0).toULong()
+            is_null = memScope.alloc<ByteVar>().apply { value = (string == null).toByte() }.ptr
+        }
     }
 
     public fun clear() {
