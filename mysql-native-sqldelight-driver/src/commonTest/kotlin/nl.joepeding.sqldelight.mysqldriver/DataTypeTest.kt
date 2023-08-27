@@ -71,7 +71,7 @@ class DataTypeTest {
 
     @Test
     fun `MySQL YEAR field type can be read to Long and set with Long`() {
-        val stringVal = "yearBitField-" + MinimalTest.randomString()
+        val stringVal = "yearField-" + MinimalTest.randomString()
 
         // Create table
         driver.execute(
@@ -110,6 +110,50 @@ class DataTypeTest {
             }
         )
 
-        assertEquals(2050, result.value.first(), "Inserted BIT value does not match to expected Long")
+        assertEquals(2050, result.value.first(), "Inserted YEAR value does not match to expected Long")
+    }
+
+    @Test
+    fun `MySQL DATE field type can be read to String and set with String`() {
+        val stringVal = "dateField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `datefieldtest`(" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                    "`datefield` DATE DEFAULT NULL" +
+                    ");", 0
+        )
+
+        // Insert
+        var insert = driver.execute(
+            null,
+            "INSERT into datefieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "datefield" +
+                    ") VALUES(?, ?);", // Bit field can also be set with `b'000111'`
+            6
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "2023-08-27")
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, datefield FROM datefieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                buildList {
+                    while (it.next()) {
+                        add(
+                            it.getString(1),
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals("2023-08-27", result.value.first(), "Inserted DATE value does not match to expected String")
     }
 }
