@@ -52,7 +52,7 @@ class MySQLCursor(
                 MYSQL_TYPE_TIME2 -> TODO()
                 MYSQL_TYPE_DATETIME,
                 MYSQL_TYPE_DATETIME2 -> TODO()
-                MYSQL_TYPE_YEAR -> TODO()
+                MYSQL_TYPE_YEAR -> memScope.alloc<LongVar>()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
                 MYSQL_TYPE_BLOB -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
