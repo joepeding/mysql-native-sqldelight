@@ -30,7 +30,7 @@ class DataTypeTest {
         )
 
         // Insert
-        var insert = driver.execute(
+        driver.execute(
             null,
             "INSERT into bitfieldtest(" +
                     "$TESTNAME_FIELD, " +
@@ -82,7 +82,7 @@ class DataTypeTest {
         )
 
         // Insert
-        var insert = driver.execute(
+        driver.execute(
             null,
             "INSERT into yearfieldtest(" +
                     "$TESTNAME_FIELD, " +
@@ -126,7 +126,7 @@ class DataTypeTest {
         )
 
         // Insert
-        var insert = driver.execute(
+        driver.execute(
             null,
             "INSERT into datefieldtest(" +
                     "$TESTNAME_FIELD, " +
