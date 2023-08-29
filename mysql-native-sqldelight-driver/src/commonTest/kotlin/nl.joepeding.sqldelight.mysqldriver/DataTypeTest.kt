@@ -1,6 +1,7 @@
 package nl.joepeding.sqldelight.mysqldriver
 
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlin.test.*
 
 class DataTypeTest {
@@ -160,5 +161,75 @@ class DataTypeTest {
 
         assertEquals("2023-08-27", result.value.first().first, "Inserted DATE value does not match to expected String")
         assertEquals(LocalDate(2023, 8, 27), result.value.first().second, "Inserted DATE value does not match to expected String")
+    }
+
+    @Test
+    fun `MySQL DATETIME field type can be read to kotlinx LocalDateTime and String and set with String`() {
+        val stringVal = "dateField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `datetimefieldtest`(" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                    "`datetimefield` DATETIME DEFAULT NULL," +
+                    "`datetimefieldmid` DATETIME(3) DEFAULT NULL," +
+                    "`datetimefieldmax` DATETIME(6) DEFAULT NULL" +
+                    ");", 0
+        )
+
+        // Insert
+        driver.execute(
+            null,
+            "INSERT into datetimefieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "datetimefield," +
+                    "datetimefieldmid," +
+                    "datetimefieldmax" +
+                    ") VALUES(?, ?, ?, ?);", // Bit field can also be set with `b'000111'`
+            4
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "2023-08-27 13:37:31.337")
+            bindString(2, "2023-08-27 13:37:31.337")
+            bindString(3, "2023-08-27 13:37:31.337133")
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, datetimefield, datetimefieldmid, datetimefieldmax FROM datetimefieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                buildList {
+                    while (it.next()) {
+                        add(
+                            mapOf(
+                                "datetimefield" to Pair(
+                                    it.getString(1),
+                                    (it as MySQLCursor).getDateTime(1)
+                                ),
+                                "datetimefieldmid" to Pair(
+                                    it.getString(2),
+                                    (it as MySQLCursor).getDateTime(2)
+                                ),
+                                "datetimefieldmax" to Pair(
+                                    it.getString(3),
+                                    (it as MySQLCursor).getDateTime(3)
+                                ),
+                            )
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals("2023-08-27T13:37:31", result.value.first()["datetimefield"]!!.first)
+        assertEquals(LocalDateTime(2023,8,27,13,37,31,0), result.value.first()["datetimefield"]!!.second)
+
+        assertEquals("2023-08-27T13:37:31.337", result.value.first()["datetimefieldmid"]!!.first)
+        assertEquals(LocalDateTime(2023,8,27,13,37,31,337000000), result.value.first()["datetimefieldmid"]!!.second)
+
+        assertEquals("2023-08-27T13:37:31.337133", result.value.first()["datetimefieldmax"]!!.first)
+        assertEquals(LocalDateTime(2023,8,27,13,37,31,337133000), result.value.first()["datetimefieldmax"]!!.second)
     }
 }

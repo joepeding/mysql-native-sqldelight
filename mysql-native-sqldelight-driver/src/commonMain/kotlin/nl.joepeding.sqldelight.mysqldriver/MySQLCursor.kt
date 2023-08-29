@@ -3,6 +3,7 @@ package nl.joepeding.sqldelight.mysqldriver
 import app.cash.sqldelight.db.SqlCursor
 import kotlinx.cinterop.*
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import mysql.*
 
 class MySQLCursor(
@@ -109,7 +110,7 @@ class MySQLCursor(
             MYSQL_TYPE_TIME,
             MYSQL_TYPE_TIME2 -> TODO()
             MYSQL_TYPE_DATETIME,
-            MYSQL_TYPE_DATETIME2 -> TODO()
+            MYSQL_TYPE_DATETIME2 -> getDateTime(index).toString()
             else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
                 ?.pointed
                 ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
@@ -126,6 +127,21 @@ class MySQLCursor(
         if (isNullByIndex(index)) { return null }
         val date = buffers[index].reinterpret<MYSQL_TIME>()
         return LocalDate(date.year.toInt(), date.month.toInt(), date.day.toInt())
+    }
+
+    fun getDateTime(index: Int): LocalDateTime? {
+        if (isNullByIndex(index)) { return null }
+        val datetime = buffers[index].reinterpret<MYSQL_TIME>()
+        return LocalDateTime(
+            datetime.year.toInt(),
+            datetime.month.toInt(),
+            datetime.day.toInt(),
+            datetime.hour.toInt(),
+            datetime.minute.toInt(),
+            datetime.second.toInt(),
+            // MySQL stores partial seconds in up to 6 digits, but we need 9 for nanoseconds
+            datetime.second_part.toString().padEnd(9, '0').toInt()
+        )
     }
 
     // TODO: Better exception type?
