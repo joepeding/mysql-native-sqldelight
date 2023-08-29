@@ -1,5 +1,6 @@
 package nl.joepeding.sqldelight.mysqldriver
 
+import kotlinx.datetime.LocalDate
 import kotlin.test.*
 
 class DataTypeTest {
@@ -114,7 +115,7 @@ class DataTypeTest {
     }
 
     @Test
-    fun `MySQL DATE field type can be read to String and set with String`() {
+    fun `MySQL DATE field type can be read to kotlinx LocalDate and String and set with String`() {
         val stringVal = "dateField-" + MinimalTest.randomString()
 
         // Create table
@@ -147,13 +148,17 @@ class DataTypeTest {
                 buildList {
                     while (it.next()) {
                         add(
-                            it.getString(1),
+                            Pair(
+                                it.getString(1),
+                                (it as MySQLCursor).getDate(1)
+                            )
                         )
                     }
                 }
             }
         )
 
-        assertEquals("2023-08-27", result.value.first(), "Inserted DATE value does not match to expected String")
+        assertEquals("2023-08-27", result.value.first().first, "Inserted DATE value does not match to expected String")
+        assertEquals(LocalDate(2023, 8, 27), result.value.first().second, "Inserted DATE value does not match to expected String")
     }
 }

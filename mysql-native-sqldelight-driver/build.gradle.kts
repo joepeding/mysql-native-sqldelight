@@ -9,6 +9,10 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    commonMainImplementation(rootProject.libs.kotlin.datetime)
+}
+
 tasks.withType(AbstractTestTask::class.java).configureEach {
     testLogging {
         info.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)

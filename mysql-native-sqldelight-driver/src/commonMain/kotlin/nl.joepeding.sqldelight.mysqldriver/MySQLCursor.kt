@@ -2,6 +2,7 @@ package nl.joepeding.sqldelight.mysqldriver
 
 import app.cash.sqldelight.db.SqlCursor
 import kotlinx.cinterop.*
+import kotlinx.datetime.LocalDate
 import mysql.*
 
 class MySQLCursor(
@@ -49,9 +50,9 @@ class MySQLCursor(
                 MYSQL_TYPE_BIT -> memScope.alloc<LongVar>()
                 MYSQL_TYPE_DATE -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_TIME,
-                MYSQL_TYPE_TIME2 -> TODO()
+                MYSQL_TYPE_TIME2 -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_DATETIME,
-                MYSQL_TYPE_DATETIME2 -> TODO()
+                MYSQL_TYPE_DATETIME2 -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_YEAR -> memScope.alloc<LongVar>()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
@@ -103,14 +104,13 @@ class MySQLCursor(
     }
 
     override fun getString(index: Int): String? {
-        val string: String?
-        // TODO: Move list of field types that go to special buffer to a separate var
-        // TODO: Move buffer reinterpreting to getDate/getTime/getDateTime methods
-        if (bindings[index].buffer_type in listOf(MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_TIME2, MYSQL_TYPE_DATETIME, MYSQL_TYPE_DATETIME2)) {
-            val time = buffers[index].reinterpret<MYSQL_TIME>()
-            string = "${time.year}-${time.month.toString().padStart(2, '0')}-${time.day.toString().padStart(2, '0')}"
-        } else {
-            string = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
+        val string: String? = when (bindings[index].buffer_type) {
+            MYSQL_TYPE_DATE -> getDate(index).toString()
+            MYSQL_TYPE_TIME,
+            MYSQL_TYPE_TIME2 -> TODO()
+            MYSQL_TYPE_DATETIME,
+            MYSQL_TYPE_DATETIME2 -> TODO()
+            else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
                 ?.pointed
                 ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
                 ?.getBytes()
@@ -120,6 +120,12 @@ class MySQLCursor(
         println("Fetch string (null=${isNullByIndex(index)}): $string (${string?.length} chars)")
         if (isNullByIndex(index)) { return null }
         return string
+    }
+
+    fun getDate(index: Int): LocalDate? {
+        if (isNullByIndex(index)) { return null }
+        val date = buffers[index].reinterpret<MYSQL_TIME>()
+        return LocalDate(date.year.toInt(), date.month.toInt(), date.day.toInt())
     }
 
     // TODO: Better exception type?
