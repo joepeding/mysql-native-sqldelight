@@ -5,6 +5,9 @@ import kotlinx.cinterop.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import mysql.*
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class MySQLCursor(
     val stmt: CPointer<MYSQL_STMT>
@@ -43,7 +46,7 @@ class MySQLCursor(
                 MYSQL_TYPE_INT24,
                 MYSQL_TYPE_LONGLONG,
                 MYSQL_TYPE_TIMESTAMP,
-                MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<LongVar>()
+                MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<LongVar>() // TODO: should use MYSQL_TIME as buffer
                 MYSQL_TYPE_DECIMAL,
                 MYSQL_TYPE_NEWDECIMAL,
                 MYSQL_TYPE_FLOAT,
@@ -108,7 +111,7 @@ class MySQLCursor(
         val string: String? = when (bindings[index].buffer_type) {
             MYSQL_TYPE_DATE -> getDate(index).toString()
             MYSQL_TYPE_TIME,
-            MYSQL_TYPE_TIME2 -> TODO()
+            MYSQL_TYPE_TIME2 -> getDuration(index).toString() //TODO: Default format like `13h 37m 31s` is not great
             MYSQL_TYPE_DATETIME,
             MYSQL_TYPE_DATETIME2 -> getDateTime(index).toString()
             else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
@@ -142,6 +145,15 @@ class MySQLCursor(
             // MySQL stores partial seconds in up to 6 digits, but we need 9 for nanoseconds
             datetime.second_part.toString().padEnd(9, '0').toInt()
         )
+    }
+
+    fun getDuration(index: Int): Duration? {
+        if (isNullByIndex(index)) { return null }
+        val time = buffers[index].reinterpret<MYSQL_TIME>()
+        return  time.hour.toInt().toDuration(DurationUnit.HOURS) +
+                time.minute.toInt().toDuration(DurationUnit.MINUTES) +
+                time.second.toInt().toDuration(DurationUnit.SECONDS) +
+                time.second_part.toString().padEnd(9, '0').toInt().toDuration(DurationUnit.NANOSECONDS)
     }
 
     // TODO: Better exception type?

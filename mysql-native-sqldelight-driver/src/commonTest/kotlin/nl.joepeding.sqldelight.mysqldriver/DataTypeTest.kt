@@ -3,6 +3,9 @@ package nl.joepeding.sqldelight.mysqldriver
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.*
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class DataTypeTest {
     private final val TESTNAME_FIELD = "testname"
@@ -165,7 +168,7 @@ class DataTypeTest {
 
     @Test
     fun `MySQL DATETIME field type can be read to kotlinx LocalDateTime and String and set with String`() {
-        val stringVal = "dateField-" + MinimalTest.randomString()
+        val stringVal = "datetimeField-" + MinimalTest.randomString()
 
         // Create table
         driver.execute(
@@ -231,5 +234,87 @@ class DataTypeTest {
 
         assertEquals("2023-08-27T13:37:31.337133", result.value.first()["datetimefieldmax"]!!.first)
         assertEquals(LocalDateTime(2023,8,27,13,37,31,337133000), result.value.first()["datetimefieldmax"]!!.second)
+    }
+
+    @Test
+    fun `MySQL TIME field type can be read to kotlinx Duration and String and set with String`() {
+        val stringVal = "timeField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `timefieldtest`(" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                    "`timefield` TIME DEFAULT NULL," +
+                    "`timefieldmid` TIME(3) DEFAULT NULL," +
+                    "`timefieldmax` TIME(6) DEFAULT NULL" +
+                    ");", 0
+        )
+
+        // Insert
+        driver.execute(
+            null,
+            "INSERT into timefieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "timefield," +
+                    "timefieldmid," +
+                    "timefieldmax" +
+                    ") VALUES(?, ?, ?, ?);", // Bit field can also be set with `b'000111'`
+            4
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "13:37:31.337")
+            bindString(2, "13:37:31.337")
+            bindString(3, "13:37:31.337133")
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, timefield, timefieldmid, timefieldmax FROM timefieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                buildList {
+                    while (it.next()) {
+                        add(
+                            mapOf(
+                                "timefield" to Pair(
+                                    it.getString(1),
+                                    (it as MySQLCursor).getDuration(1)
+                                ),
+                                "timefieldmid" to Pair(
+                                    it.getString(2),
+                                    (it as MySQLCursor).getDuration(2)
+                                ),
+                                "timefieldmax" to Pair(
+                                    it.getString(3),
+                                    (it as MySQLCursor).getDuration(3)
+                                ),
+                            )
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals("13h 37m 31s", result.value.first()["timefield"]!!.first)
+        assertEquals(13.toDuration(DurationUnit.HOURS) + 37.toDuration(DurationUnit.MINUTES) + 31.toDuration(DurationUnit.SECONDS), result.value.first()["timefield"]!!.second)
+
+        assertEquals("13h 37m 31.337s", result.value.first()["timefieldmid"]!!.first)
+        assertEquals(
+            13.toDuration(DurationUnit.HOURS) +
+                37.toDuration(DurationUnit.MINUTES) +
+                31.toDuration(DurationUnit.SECONDS) +
+                337000.toDuration(DurationUnit.MICROSECONDS),
+            result.value.first()["timefieldmid"]!!.second
+        )
+
+        assertEquals("13h 37m 31.337133s", result.value.first()["timefieldmax"]!!.first)
+        assertEquals(
+            13.toDuration(DurationUnit.HOURS) +
+                    37.toDuration(DurationUnit.MINUTES) +
+                    31.toDuration(DurationUnit.SECONDS) +
+                    337133.toDuration(DurationUnit.MICROSECONDS),
+            result.value.first()["timefieldmax"]!!.second
+        )
     }
 }
