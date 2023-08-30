@@ -46,7 +46,7 @@ class MySQLCursor(
                 MYSQL_TYPE_INT24,
                 MYSQL_TYPE_LONGLONG,
                 MYSQL_TYPE_TIMESTAMP,
-                MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<LongVar>() // TODO: should use MYSQL_TIME as buffer
+                MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_DECIMAL,
                 MYSQL_TYPE_NEWDECIMAL,
                 MYSQL_TYPE_FLOAT,
@@ -113,7 +113,9 @@ class MySQLCursor(
             MYSQL_TYPE_TIME,
             MYSQL_TYPE_TIME2 -> getDuration(index).toString() //TODO: Default format like `13h 37m 31s` is not great
             MYSQL_TYPE_DATETIME,
-            MYSQL_TYPE_DATETIME2 -> getDateTime(index).toString()
+            MYSQL_TYPE_DATETIME2,
+            MYSQL_TYPE_TIMESTAMP,
+            MYSQL_TYPE_TIMESTAMP2 -> getDateTime(index).toString()
             else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
                 ?.pointed
                 ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
