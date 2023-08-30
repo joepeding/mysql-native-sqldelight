@@ -203,21 +203,22 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
+                require(it is MySQLCursor)
                 buildList {
                     while (it.next()) {
                         add(
                             mapOf(
                                 "datetimefield" to Pair(
                                     it.getString(1),
-                                    (it as MySQLCursor).getDateTime(1)
+                                    it.getDateTime(1)
                                 ),
                                 "datetimefieldmid" to Pair(
                                     it.getString(2),
-                                    (it as MySQLCursor).getDateTime(2)
+                                    it.getDateTime(2)
                                 ),
                                 "datetimefieldmax" to Pair(
                                     it.getString(3),
-                                    (it as MySQLCursor).getDateTime(3)
+                                    it.getDateTime(3)
                                 ),
                             )
                         )
@@ -273,21 +274,22 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
+                require(it is MySQLCursor)
                 buildList {
                     while (it.next()) {
                         add(
                             mapOf(
                                 "timefield" to Pair(
                                     it.getString(1),
-                                    (it as MySQLCursor).getDuration(1)
+                                    it.getDuration(1)
                                 ),
                                 "timefieldmid" to Pair(
                                     it.getString(2),
-                                    (it as MySQLCursor).getDuration(2)
+                                    it.getDuration(2)
                                 ),
                                 "timefieldmax" to Pair(
                                     it.getString(3),
-                                    (it as MySQLCursor).getDuration(3)
+                                    it.getDuration(3)
                                 ),
                             )
                         )
@@ -355,21 +357,22 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
+                require(it is MySQLCursor)
                 buildList {
                     while (it.next()) {
                         add(
                             mapOf(
                                 "timestampfield" to Pair(
                                     it.getString(1),
-                                    (it as MySQLCursor).getDateTime(1)
+                                    it.getDateTime(1)
                                 ),
                                 "timestampfieldmid" to Pair(
                                     it.getString(2),
-                                    (it as MySQLCursor).getDateTime(2)
+                                    it.getDateTime(2)
                                 ),
                                 "timestampfieldmax" to Pair(
                                     it.getString(3),
-                                    (it as MySQLCursor).getDateTime(3)
+                                    it.getDateTime(3)
                                 ),
                             )
                         )
