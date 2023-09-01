@@ -3,7 +3,6 @@ package nl.joepeding.sqldelight.mysqldriver
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.*
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -92,7 +91,7 @@ class DataTypeTest {
             "INSERT into yearfieldtest(" +
                     "$TESTNAME_FIELD, " +
                     "yearfield" +
-                    ") VALUES(?, ?);", // Bit field can also be set with `b'000111'`
+                    ") VALUES(?, ?);",
             6
         ) {
             bindString(0, stringVal)
@@ -136,7 +135,7 @@ class DataTypeTest {
             "INSERT into datefieldtest(" +
                     "$TESTNAME_FIELD, " +
                     "datefield" +
-                    ") VALUES(?, ?);", // Bit field can also be set with `b'000111'`
+                    ") VALUES(?, ?);",
             6
         ) {
             bindString(0, stringVal)
@@ -188,7 +187,7 @@ class DataTypeTest {
                     "datetimefield," +
                     "datetimefieldmid," +
                     "datetimefieldmax" +
-                    ") VALUES(?, ?, ?, ?);", // Bit field can also be set with `b'000111'`
+                    ") VALUES(?, ?, ?, ?);",
             4
         ) {
             bindString(0, stringVal)
@@ -259,7 +258,7 @@ class DataTypeTest {
                     "timefield," +
                     "timefieldmid," +
                     "timefieldmax" +
-                    ") VALUES(?, ?, ?, ?);", // Bit field can also be set with `b'000111'`
+                    ") VALUES(?, ?, ?, ?);",
             4
         ) {
             bindString(0, stringVal)
@@ -342,7 +341,7 @@ class DataTypeTest {
                     "timestampfield," +
                     "timestampfieldmid," +
                     "timestampfieldmax" +
-                    ") VALUES(?, ?, ?, ?);", // Bit field can also be set with `b'000111'`
+                    ") VALUES(?, ?, ?, ?);",
             4
         ) {
             bindString(0, stringVal)
