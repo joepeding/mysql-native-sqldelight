@@ -321,7 +321,7 @@ class DataTypeTest {
 
     @Test
     fun `MySQL TIMESTAMP field type can be read to kotlinx DateTime and String and set with String`() {
-        val stringVal = "timeField-" + MinimalTest.randomString()
+        val stringVal = "timestampField-" + MinimalTest.randomString()
 
         // Create table
         driver.execute(
@@ -392,7 +392,7 @@ class DataTypeTest {
 
     @Test
     fun `MySQL SET field types can be read to String and set with String`() {
-        val stringVal = "timeField-" + MinimalTest.randomString()
+        val stringVal = "setField-" + MinimalTest.randomString()
 
         // Create table
         driver.execute(
@@ -433,5 +433,50 @@ class DataTypeTest {
         )
 
         assertEquals("a,c", result.value.first())
+    }
+
+    @Test
+    fun `MySQL ENUM field types can be read to String and set with String`() {
+        val stringVal = "enumField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `enumfieldtest`(\n" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL,\n" +
+                    "`enumfield` ENUM('a','b','c','d')\n" +
+                    ");", 0
+        )
+
+        // Insert
+        driver.execute(
+            null,
+            "INSERT into enumfieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "enumfield" +
+                    ") VALUES(?, ?);",
+            4
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "a")
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, enumfield FROM enumfieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                require(it is MySQLCursor)
+                buildList {
+                    while (it.next()) {
+                        add(
+                            it.getString(1)
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals("a", result.value.first())
     }
 }
