@@ -390,4 +390,49 @@ class DataTypeTest {
         assertEquals("2023-08-27T13:37:31.337133", result.value.first()["timestampfieldmax"]!!.first)
         assertEquals(LocalDateTime(2023,8,27,13,37,31,337133000), result.value.first()["timestampfieldmax"]!!.second)
     }
+
+    @Test
+    fun `MySQL SET field types can be read to String and set with String`() {
+        val stringVal = "timeField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `setfieldtest`(\n" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL,\n" +
+                    "`setfield` SET('a','b','c','d')\n" +
+                    ");", 0
+        )
+
+        // Insert
+        driver.execute(
+            null,
+            "INSERT into setfieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "setfield" +
+                    ") VALUES(?, ?);",
+            4
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "a,c")
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, setfield FROM setfieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                require(it is MySQLCursor)
+                buildList {
+                    while (it.next()) {
+                        add(
+                            it.getString(1)
+                        )
+                    }
+                }
+            }
+        )
+
+        assertEquals("a,c", result.value.first())
+    }
 }

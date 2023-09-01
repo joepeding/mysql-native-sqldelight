@@ -60,9 +60,9 @@ class MySQLCursor(
                 MYSQL_TYPE_YEAR -> memScope.alloc<LongVar>()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
-                MYSQL_TYPE_BLOB -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
-                MYSQL_TYPE_SET -> TODO()
-                MYSQL_TYPE_ENUM -> TODO()
+                MYSQL_TYPE_BLOB,
+                MYSQL_TYPE_SET,
+                MYSQL_TYPE_ENUM-> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
                 MYSQL_TYPE_GEOMETRY -> TODO()
                 MYSQL_TYPE_NULL -> TODO()
                 else -> { error("Encountered unknown field type: ${field.type}") }
