@@ -19,7 +19,7 @@ public class MySQLPreparedStatement(
                 memScope.alloc<BooleanVarOf<Boolean>>().apply { value = boolean }.ptr
             }
             buffer_length = sizeOf<BooleanVar>().toULong()
-            is_null = memScope.alloc<ByteVar>().apply { value = (boolean == null).toByte() }.ptr
+            is_null = memScope.alloc<BooleanVar>().apply { value = (boolean == null) }.ptr
         }
     }
 
@@ -30,7 +30,7 @@ public class MySQLPreparedStatement(
             buffer_type = MYSQL_TYPE_BLOB
             buffer = cRepresentation?.getPointer(memScope)
             buffer_length = cRepresentation?.size?.toULong() ?: 0.toULong()
-            is_null = memScope.alloc<ByteVar>().apply { value = (bytes == null).toByte() }.ptr
+            is_null = memScope.alloc<BooleanVar>().apply { value = (bytes == null) }.ptr
         }
     }
 
@@ -42,7 +42,7 @@ public class MySQLPreparedStatement(
                 memScope.alloc<DoubleVar>().apply { value = double }.ptr
             }
             buffer_length = sizeOf<DoubleVar>().toULong()
-            is_null = memScope.alloc<ByteVar>().apply { value = (double == null).toByte() }.ptr
+            is_null = memScope.alloc<BooleanVar>().apply { value = (double == null) }.ptr
         }
     }
 
@@ -54,7 +54,7 @@ public class MySQLPreparedStatement(
                 memScope.alloc<LongVarOf<Long>>().apply { value = long }.ptr
             }
             buffer_length = sizeOf<LongVarOf<Long>>().toULong()
-            is_null = memScope.alloc<ByteVar>().apply { value = (long == null).toByte() }.ptr
+            is_null = memScope.alloc<BooleanVar>().apply { value = (long == null) }.ptr
         }
     }
 
@@ -64,7 +64,7 @@ public class MySQLPreparedStatement(
             buffer_type = MYSQL_TYPE_STRING
             buffer = string?.cstr?.getPointer(memScope)
             buffer_length = (string?.length ?: 0).toULong()
-            is_null = memScope.alloc<ByteVar>().apply { value = (string == null).toByte() }.ptr
+            is_null = memScope.alloc<BooleanVar>().apply { value = (string == null) }.ptr
         }
     }
 

@@ -198,7 +198,7 @@ class MinimalTest {
             )
         }
         requireNotNull(e.message)
-        assertContains(e.message!!, "Can't connect to MySQL server on '127.1.2.3'")
+        assertContains(e.message!!, "Can't connect to MySQL server on '127.1.2.3:3306'")
     }
 
     @Test

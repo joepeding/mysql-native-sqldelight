@@ -16,7 +16,7 @@ class MySQLCursor(
     private val buffers: MutableList<CVariable> = mutableListOf()
     private var bindings: CArrayPointer<MYSQL_BIND>
     private var lengths: CArrayPointer<CPointerVar<ULongVar>>
-    private var nulls: CArrayPointer<CPointerVar<ByteVar>>
+    private var nulls: CArrayPointer<CPointerVar<BooleanVar>>
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
@@ -24,11 +24,11 @@ class MySQLCursor(
 
         // Buffer full response so max length of each column is known
         require(
-            mysql_stmt_attr_set(
+            mysql_stmt_attr_set( // From docs: "Return values: Zero for success. Nonzero if option is unknown."
                 stmt,
                 enum_stmt_attr_type.STMT_ATTR_UPDATE_MAX_LENGTH,
                 memScope.alloc<BooleanVar>().also { it.value = true }.ptr
-            ) == 0.toByte()
+            ).not() // False is 'success', so it needs inversion
         ) { "Error setting MySQL statement attribute: ${ stmt.error() }"}
         require(mysql_stmt_store_result(stmt) == 0) { "Error storing MySQL result: ${ stmt.error() }"}
 
@@ -72,7 +72,7 @@ class MySQLCursor(
             bindings[index].buffer_length = field.max_length
             lengths[index] = memScope.alloc<ULongVar>().ptr
             bindings[index].length = lengths[index]
-            nulls[index] = memScope.alloc<ByteVar>().ptr
+            nulls[index] = memScope.alloc<BooleanVar>().ptr
             bindings[index].is_null = nulls[index]
             buffers.add(buffer)
         }
