@@ -38,7 +38,7 @@ class MySQLCursor(
         nulls = memScope.allocArray(fieldCount)
         (0 until fieldCount).forEach { index ->
             val field = mysql_fetch_field(meta)!!.pointed
-            println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.length}")
+            println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.max_length}")
             val buffer = when (field.type) {
                 MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>() // MySQL BOOLEAN is an alias for TINYINT(1)
                 MYSQL_TYPE_SHORT,
@@ -60,10 +60,14 @@ class MySQLCursor(
                 MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
+                MYSQL_TYPE_VARCHAR, // TODO: Test
+                MYSQL_TYPE_TINY_BLOB,
+                MYSQL_TYPE_MEDIUM_BLOB,
+                MYSQL_TYPE_LONG_BLOB,
                 MYSQL_TYPE_BLOB,
                 MYSQL_TYPE_SET,
                 MYSQL_TYPE_ENUM -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
-                MYSQL_TYPE_GEOMETRY -> TODO()
+                MYSQL_TYPE_GEOMETRY -> throw IllegalStateException("GEOMETRY field type not supported, use ST_AsText or ST_AsBinary to read as String or ByteArray")
                 MYSQL_TYPE_NULL -> TODO()
                 else -> { error("Encountered unknown field type: ${field.type}") }
             }

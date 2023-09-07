@@ -391,7 +391,7 @@ class DataTypeTest {
     }
 
     @Test
-    fun `MySQL SET field types can be read to String and set with String`() {
+    fun `MySQL SET field type can be read to String and set with String`() {
         val stringVal = "setField-" + MinimalTest.randomString()
 
         // Create table
@@ -436,7 +436,7 @@ class DataTypeTest {
     }
 
     @Test
-    fun `MySQL ENUM field types can be read to String and set with String`() {
+    fun `MySQL ENUM field type can be read to String and set with String`() {
         val stringVal = "enumField-" + MinimalTest.randomString()
 
         // Create table
@@ -478,5 +478,86 @@ class DataTypeTest {
         )
 
         assertEquals("a", result.value.first())
+    }
+
+    @Test
+    fun `MySQL GEOMETRY field type can be read to String or ByteArray and set with String or ByteArray`() {
+        val stringVal = "geometryField-" + MinimalTest.randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `geomfieldtest`(\n" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL,\n" +
+                    "`geomStringfield` GEOMETRY,\n" +
+                    "`geomBlobfield` GEOMETRY" +
+                    ");", 0
+        )
+
+        // WKB for 'POINT(1 -1)' from Table 11.2 in https://dev.mysql.com/doc/refman/8.0/en/gis-data-formats.html:
+        val wkb = ByteArray(21).apply {
+            // Byte order
+            set(0, 1.toByte())
+
+            // WKB Type
+            set(1, 1.toByte()) // 2-4 stay zero
+
+            // X-coord
+            // 5-10 stay zero
+            set(11, 240.toByte())
+            set(12, 63.toByte())
+
+            // Y-coord
+            // 13-18 stay zero
+            set(19, 240.toByte())
+            set(20, 191.toByte())
+        }
+
+        // Insert
+        driver.execute(
+            null,
+            "INSERT into geomfieldtest(" +
+                    "$TESTNAME_FIELD, " +
+                    "geomStringfield," +
+                    "geomBlobfield" +
+                    ") VALUES(?, ST_GeomFromText(?), ST_GeomFromWKB(?));",
+            4
+        ) {
+            bindString(0, stringVal)
+            bindString(1, "POINT(1 1)")
+            bindBytes(2, wkb)
+        }
+
+        val result = driver.executeQuery(
+            identifier = null,
+            sql = "SELECT $TESTNAME_FIELD, ST_AsText(geomStringfield), ST_AsBinary(geomStringField), ST_AsText(geomBlobField), ST_AsBinary(geomBlobField) FROM geomfieldtest WHERE $TESTNAME_FIELD = '$stringVal';",
+            parameters = 0,
+            binders = null,
+            mapper = {
+                require(it is MySQLCursor)
+                buildList {
+                    while (it.next()) {
+                        add(
+                            Pair(
+                                Pair(
+                                    it.getString(1),
+                                    it.getString(3),
+                                ),
+                                Pair(
+                                    it.getBytes(2),
+                                    it.getBytes(4),
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        )
+
+        result.value.first().let { (strings, bytes) ->
+            assertEquals("POINT(1 1)", strings.first)
+            assertEquals("POINT(1 -1)", strings.second)
+            assertContentEquals(wkb.copyOf().apply { set(20, 63.toByte()) }, bytes.first)
+            assertContentEquals(wkb, bytes.second)
+        }
     }
 }
