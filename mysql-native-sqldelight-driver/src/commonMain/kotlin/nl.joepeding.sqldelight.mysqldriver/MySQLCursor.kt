@@ -60,7 +60,7 @@ class MySQLCursor(
                 MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<MYSQL_TIME>()
                 MYSQL_TYPE_STRING,
                 MYSQL_TYPE_VAR_STRING,
-                MYSQL_TYPE_VARCHAR, // TODO: Test
+                MYSQL_TYPE_VARCHAR,
                 MYSQL_TYPE_TINY_BLOB,
                 MYSQL_TYPE_MEDIUM_BLOB,
                 MYSQL_TYPE_LONG_BLOB,
@@ -68,7 +68,7 @@ class MySQLCursor(
                 MYSQL_TYPE_SET,
                 MYSQL_TYPE_ENUM -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
                 MYSQL_TYPE_GEOMETRY -> throw IllegalStateException("GEOMETRY field type not supported, use ST_AsText or ST_AsBinary to read as String or ByteArray")
-                MYSQL_TYPE_NULL -> TODO()
+                MYSQL_TYPE_NULL -> TODO("Can not find documentation about what a NULL-type column is for.")
                 else -> { error("Encountered unknown field type: ${field.type}") }
             }
             bindings[index].buffer_type = field.type
@@ -113,13 +113,13 @@ class MySQLCursor(
 
     override fun getString(index: Int): String? {
         val string: String? = when (bindings[index].buffer_type) {
-            MYSQL_TYPE_DATE -> getDate(index).toString()
+            MYSQL_TYPE_DATE -> getDate(index)?.toString()
             MYSQL_TYPE_TIME,
-            MYSQL_TYPE_TIME2 -> getDuration(index).toString() //TODO: Default format like `13h 37m 31s` is not great
+            MYSQL_TYPE_TIME2 -> getDuration(index)?.toIsoString()
             MYSQL_TYPE_DATETIME,
             MYSQL_TYPE_DATETIME2,
             MYSQL_TYPE_TIMESTAMP,
-            MYSQL_TYPE_TIMESTAMP2 -> getDateTime(index).toString()
+            MYSQL_TYPE_TIMESTAMP2 -> getDateTime(index)?.toString()
             else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
                 ?.pointed
                 ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
@@ -162,15 +162,14 @@ class MySQLCursor(
                 time.second_part.toString().padEnd(9, '0').toInt().toDuration(DurationUnit.NANOSECONDS)
     }
 
-    // TODO: Better exception type?
     override fun next(): Boolean = mysql_stmt_fetch(stmt).let {
         println("Next row")
         return@let when (it) {
             0 -> true
             MYSQL_NO_DATA -> false
-            1 -> throw Exception("Error fetching next row: ${mysql_stmt_error(stmt)?.toKString()}")
+            1 -> throw IllegalStateException("Error fetching next row: ${mysql_stmt_error(stmt)?.toKString()}")
             MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
-            else -> throw Exception("Unexpected result for `mysql_stmt_fetch`: $it")
+            else -> throw IllegalStateException("Unexpected result for `mysql_stmt_fetch`: $it")
         }
     }
 

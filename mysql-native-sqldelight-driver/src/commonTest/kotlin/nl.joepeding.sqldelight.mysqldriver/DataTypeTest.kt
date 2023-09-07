@@ -297,10 +297,10 @@ class DataTypeTest {
             }
         )
 
-        assertEquals("13h 37m 31s", result.value.first()["timefield"]!!.first)
+        assertEquals("PT13H37M31S", result.value.first()["timefield"]!!.first)
         assertEquals(13.toDuration(DurationUnit.HOURS) + 37.toDuration(DurationUnit.MINUTES) + 31.toDuration(DurationUnit.SECONDS), result.value.first()["timefield"]!!.second)
 
-        assertEquals("13h 37m 31.337s", result.value.first()["timefieldmid"]!!.first)
+        assertEquals("PT13H37M31.337S", result.value.first()["timefieldmid"]!!.first)
         assertEquals(
             13.toDuration(DurationUnit.HOURS) +
                 37.toDuration(DurationUnit.MINUTES) +
@@ -309,7 +309,7 @@ class DataTypeTest {
             result.value.first()["timefieldmid"]!!.second
         )
 
-        assertEquals("13h 37m 31.337133s", result.value.first()["timefieldmax"]!!.first)
+        assertEquals("PT13H37M31.337133S", result.value.first()["timefieldmax"]!!.first)
         assertEquals(
             13.toDuration(DurationUnit.HOURS) +
                     37.toDuration(DurationUnit.MINUTES) +
