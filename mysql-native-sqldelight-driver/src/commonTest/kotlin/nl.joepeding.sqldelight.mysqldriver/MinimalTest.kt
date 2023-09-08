@@ -1,5 +1,6 @@
 package nl.joepeding.sqldelight.mysqldriver
 
+import app.cash.sqldelight.db.QueryResult.Value
 import kotlinx.cinterop.*
 import mysql.*
 import kotlin.random.Random
@@ -146,8 +147,8 @@ class MinimalTest {
             parameters = 0,
             binders = null,
             mapper = {
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             MinimalRow(
                                 it.getString(0),
@@ -159,7 +160,7 @@ class MinimalTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
         try {

@@ -1,5 +1,6 @@
 package nl.joepeding.sqldelight.mysqldriver
 
+import app.cash.sqldelight.db.QueryResult.Value
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.*
@@ -52,8 +53,8 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             Pair(
                                 it.getLong(1),
@@ -61,7 +62,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 
@@ -104,13 +105,13 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             it.getLong(1),
                         )
                     }
-                }
+                })
             }
         )
 
@@ -148,8 +149,8 @@ class DataTypeTest {
             parameters = 0,
             binders = null,
             mapper = {
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             Pair(
                                 it.getString(1),
@@ -157,7 +158,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 
@@ -203,8 +204,8 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             mapOf(
                                 "datetimefield" to Pair(
@@ -222,7 +223,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 
@@ -274,8 +275,8 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             mapOf(
                                 "timefield" to Pair(
@@ -293,7 +294,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 
@@ -357,8 +358,8 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             mapOf(
                                 "timestampfield" to Pair(
@@ -376,7 +377,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 
@@ -422,13 +423,13 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             it.getString(1)
                         )
                     }
-                }
+                })
             }
         )
 
@@ -467,13 +468,13 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             it.getString(1)
                         )
                     }
-                }
+                })
             }
         )
 
@@ -534,8 +535,8 @@ class DataTypeTest {
             binders = null,
             mapper = {
                 require(it is MySQLCursor)
-                buildList {
-                    while (it.next()) {
+                Value(buildList {
+                    while (it.next().value) {
                         add(
                             Pair(
                                 Pair(
@@ -549,7 +550,7 @@ class DataTypeTest {
                             )
                         )
                     }
-                }
+                })
             }
         )
 

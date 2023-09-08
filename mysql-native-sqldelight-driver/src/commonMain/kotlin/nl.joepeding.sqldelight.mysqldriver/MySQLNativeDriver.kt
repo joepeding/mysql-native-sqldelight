@@ -15,7 +15,7 @@ public class MySQLNativeDriver(
 ) : SqlDriver {
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
 
-    override fun addListener(listener: Query.Listener, queryKeys: Array<String>) {
+    override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
         TODO("Not yet implemented")
     }
 
@@ -56,7 +56,7 @@ public class MySQLNativeDriver(
     override fun <R> executeQuery(
         identifier: Int?,
         sql: String,
-        mapper: (SqlCursor) -> R,
+        mapper: (SqlCursor) -> QueryResult<R>,
         parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<R> {
@@ -83,18 +83,18 @@ public class MySQLNativeDriver(
         val cursor = MySQLCursor(statement)
         val returnVal = mapper(cursor)
         cursor.clear()
-        return QueryResult.Value(returnVal)
+        return returnVal
     }
 
     override fun newTransaction(): QueryResult<Transacter.Transaction> {
         TODO("Not yet implemented")
     }
 
-    override fun notifyListeners(queryKeys: Array<String>) {
+    override fun notifyListeners(vararg queryKeys: String) {
         TODO("Not yet implemented")
     }
 
-    override fun removeListener(listener: Query.Listener, queryKeys: Array<String>) {
+    override fun removeListener(vararg queryKeys: String, listener: Query.Listener) {
         TODO("Not yet implemented")
     }
 

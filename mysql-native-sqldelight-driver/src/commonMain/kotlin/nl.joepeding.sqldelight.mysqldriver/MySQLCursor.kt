@@ -1,5 +1,7 @@
 package nl.joepeding.sqldelight.mysqldriver
 
+import app.cash.sqldelight.db.QueryResult
+import app.cash.sqldelight.db.QueryResult.Value
 import app.cash.sqldelight.db.SqlCursor
 import kotlinx.cinterop.*
 import kotlinx.datetime.LocalDate
@@ -162,7 +164,7 @@ class MySQLCursor(
                 time.second_part.toString().padEnd(9, '0').toInt().toDuration(DurationUnit.NANOSECONDS)
     }
 
-    override fun next(): Boolean = mysql_stmt_fetch(stmt).let {
+    override fun next(): QueryResult<Boolean> = mysql_stmt_fetch(stmt).let {
         println("Next row")
         return@let when (it) {
             0 -> true
@@ -171,7 +173,7 @@ class MySQLCursor(
             MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
             else -> throw IllegalStateException("Unexpected result for `mysql_stmt_fetch`: $it")
         }
-    }
+    }.let { Value(it) } // TODO: Use QueryResult.AsyncValue instead?
 
     private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
 
