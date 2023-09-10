@@ -14,14 +14,13 @@ public class MySQLNativeDriver(
 //    listenerSupport: ListenerSupport
 ) : SqlDriver {
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
+    private var transaction: Transaction? = null
 
     override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
         TODO("Not yet implemented")
     }
 
-    override fun currentTransaction(): Transacter.Transaction? {
-        TODO("Not yet implemented")
-    }
+    override fun currentTransaction(): Transacter.Transaction? = transaction
 
     override fun execute(
         identifier: Int?,
@@ -86,8 +85,39 @@ public class MySQLNativeDriver(
         return returnVal
     }
 
-    override fun newTransaction(): QueryResult<Transacter.Transaction> {
-        TODO("Not yet implemented")
+
+    override fun newTransaction(): QueryResult.Value<Transacter.Transaction> {
+        if (transaction != null) {
+            // TODO: 1. Replace with warning level logger
+            // TODO: 2. Consider the user of SAVEPOINT statements to mimic nested transactions?
+            println("Warning: MySQL does not support nested transaction. Outer transaction is automatically committed.")
+        }
+        mysql_query(conn, "START TRANSACTION") // TODO: Check success
+        return QueryResult.Value(Transaction(transaction))
+    }
+
+    private inner class Transaction(
+        override val enclosingTransaction: Transaction?
+    ) : Transacter.Transaction() {
+        override fun endTransaction(successful: Boolean) = if(successful) {
+            commit()
+        } else {
+            rollback()
+        }
+
+        fun getEnclosingTransaction(): Transaction? = enclosingTransaction
+    }
+
+    fun commit(): QueryResult.Value<Unit> {
+        if(mysql_commit(conn)) { error(conn.error()) }
+        transaction = transaction?.getEnclosingTransaction()
+        return QueryResult.Unit
+    }
+
+    fun rollback(): QueryResult.Value<Unit> {
+        if(mysql_rollback(conn)) { error(conn.error()) }
+        transaction = transaction?.getEnclosingTransaction()
+        return QueryResult.Unit
     }
 
     override fun notifyListeners(vararg queryKeys: String) {

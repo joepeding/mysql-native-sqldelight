@@ -188,6 +188,148 @@ class MinimalTest {
     }
 
     @Test
+    fun testRollback() {
+        val stringVal = "transaction-" + randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `transactiontest`(" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                    "`data` INT(11) DEFAULT NULL" +
+                    ");", 0
+        )
+
+        // Add a row
+        driver.execute(
+            null,
+            "INSERT INTO transactiontest($TESTNAME_FIELD, data) VALUES(?, ?)",
+            2
+        ) {
+            bindString(0, stringVal)
+            bindLong(1, null)
+        }
+
+        // Start transaction
+        driver.newTransaction().value
+
+        // Update row
+        driver.execute(null, "UPDATE transactiontest SET data = ? WHERE $TESTNAME_FIELD = ?", 2) {
+            bindLong(0, 1L)
+            bindString(1, stringVal)
+        }
+
+        // Read row within transaction
+        val readWithinTransaction = driver.executeQuery(
+            identifier = null,
+            sql =  "SELECT data from transactiontest where $TESTNAME_FIELD = ?",
+            parameters = 1,
+            binders = { bindString(0, stringVal) },
+            mapper = {
+                Value(
+                    buildList {
+                        while (it.next().value) {
+                            add(it.getLong(0))
+                        }
+                    }
+                )
+            }
+        )
+        assertEquals(1L, readWithinTransaction.value.first())
+
+        // Rollback transaction
+        driver.rollback()
+
+        // Read row after rollback
+        val readAfterTransaction = driver.executeQuery(
+            identifier = null,
+            sql =  "SELECT data from transactiontest where $TESTNAME_FIELD = ?",
+            parameters = 1,
+            binders = { bindString(0, stringVal) },
+            mapper = {
+                Value(
+                    buildList {
+                        while (it.next().value) {
+                            add(it.getLong(0))
+                        }
+                    }
+                )
+            }
+        )
+        assertEquals(null, readAfterTransaction.value.first())
+    }
+
+    @Test
+    fun testCommit() {
+        val stringVal = "transaction-" + randomString()
+
+        // Create table
+        driver.execute(
+            null, "CREATE TABLE IF NOT EXISTS `transactiontest`(" +
+                    "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
+                    "`data` INT(11) DEFAULT NULL" +
+                    ");", 0
+        )
+
+        // Add a row
+        driver.execute(
+            null,
+            "INSERT INTO transactiontest($TESTNAME_FIELD, data) VALUES(?, ?)",
+            2
+        ) {
+            bindString(0, stringVal)
+            bindLong(1, null)
+        }
+
+        // Start transaction
+        driver.newTransaction().value
+
+        // Update row
+        driver.execute(null, "UPDATE transactiontest SET data = ? WHERE $TESTNAME_FIELD = ?", 2) {
+            bindLong(0, 1L)
+            bindString(1, stringVal)
+        }
+
+        // Read row within transaction
+        val readWithinTransaction = driver.executeQuery(
+            identifier = null,
+            sql =  "SELECT data from transactiontest where $TESTNAME_FIELD = ?",
+            parameters = 1,
+            binders = { bindString(0, stringVal) },
+            mapper = {
+                Value(
+                    buildList {
+                        while (it.next().value) {
+                            add(it.getLong(0))
+                        }
+                    }
+                )
+            }
+        )
+        assertEquals(1L, readWithinTransaction.value.first())
+
+        // Commit transaction
+        driver.commit()
+
+        // Read row after commit
+        val readAfterTransaction = driver.executeQuery(
+            identifier = null,
+            sql =  "SELECT data from transactiontest where $TESTNAME_FIELD = ?",
+            parameters = 1,
+            binders = { bindString(0, stringVal) },
+            mapper = {
+                Value(
+                    buildList {
+                        while (it.next().value) {
+                            add(it.getLong(0))
+                        }
+                    }
+                )
+            }
+        )
+        assertEquals(1L, readAfterTransaction.value.first())
+    }
+
+    @Test
     fun testConnectionProblem() {
         val e = assertFailsWith<IllegalArgumentException>("Connection to 127.1.2.3 should not succeed.") {
             MySQLNativeDriver(
