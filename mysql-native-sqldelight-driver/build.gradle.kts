@@ -51,6 +51,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
+                implementation(libs.kotlin.datetime)
                 api(libs.sqldelight.runtime)
             }
         }

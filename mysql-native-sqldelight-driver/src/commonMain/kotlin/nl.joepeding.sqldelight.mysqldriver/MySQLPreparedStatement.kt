@@ -2,7 +2,10 @@ package nl.joepeding.sqldelight.mysqldriver
 
 import app.cash.sqldelight.db.SqlPreparedStatement
 import kotlinx.cinterop.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import mysql.*
+import kotlin.time.Duration
 
 public class MySQLPreparedStatement(
     private val statement: CPointer<MYSQL_STMT>,
@@ -65,6 +68,64 @@ public class MySQLPreparedStatement(
             buffer = string?.cstr?.getPointer(memScope)
             buffer_length = (string?.length ?: 0).toULong()
             is_null = memScope.alloc<BooleanVar>().apply { value = (string == null) }.ptr
+        }
+    }
+
+    // TODO: Test
+    fun bindDate(index: Int, date: LocalDate?) {
+        println("Binding date")
+        bindings[index].apply {
+            is_null = memScope.alloc<BooleanVar>().apply { value = (date == null) }.ptr
+            if (date == null) { return }
+            buffer_type = MYSQL_TYPE_DATE
+            buffer = memScope.alloc<MYSQL_TIME>().also {
+                it.year = date.year.toUInt()
+                it.month = date.monthNumber.toUInt()
+                it.day = date.dayOfMonth.toUInt()
+            }.ptr
+            buffer_length = sizeOf<MYSQL_TIME>().toULong()
+
+        }
+    }
+
+    // TODO: Test
+    // TODO: Time zones
+    // TODO: Partial seconds
+    fun bindDateTime(index: Int, dateTime: LocalDateTime?) {
+        println("Binding date")
+        bindings[index].apply {
+            is_null = memScope.alloc<BooleanVar>().apply { value = (dateTime == null) }.ptr
+            if (dateTime == null) { return }
+            buffer_type = MYSQL_TYPE_DATETIME
+            buffer = memScope.alloc<MYSQL_TIME>().also {
+                it.year = dateTime.year.toUInt()
+                it.month = dateTime.monthNumber.toUInt()
+                it.day = dateTime.dayOfMonth.toUInt()
+                it.hour = dateTime.hour.toUInt()
+                it.minute = dateTime.minute.toUInt()
+                it.second = dateTime.second.toUInt()
+                it.second_part = (dateTime.nanosecond / 1000).toULong()
+            }.ptr
+            buffer_length = sizeOf<MYSQL_TIME>().toULong()
+        }
+    }
+
+    // TODO: Test (esp with durations of > 24 hours and negative durations)
+    fun bindDuration(index: Int, duration: Duration?) {
+        println("Binding date")
+        bindings[index].apply {
+            is_null = memScope.alloc<BooleanVar>().apply { value = (duration == null) }.ptr
+            if (duration == null) { return }
+            buffer_type = MYSQL_TYPE_DATETIME
+            buffer = memScope.alloc<MYSQL_TIME>().also {
+                duration.toComponents { h, m, s, ns ->
+                    it.hour = h.toUInt()
+                    it.minute = m.toUInt()
+                    it.second = s.toUInt()
+                    it.second_part = (ns / 1000).toULong()
+                }
+            }.ptr
+            buffer_length = sizeOf<MYSQL_TIME>().toULong()
         }
     }
 
