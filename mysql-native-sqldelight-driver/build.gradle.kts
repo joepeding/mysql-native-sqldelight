@@ -2,15 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    commonMainImplementation(rootProject.libs.kotlin.datetime)
+    alias(libs.plugins.kotlin.multiplatform) apply true
 }
 
 tasks.withType(AbstractTestTask::class.java).configureEach {
@@ -62,3 +54,4 @@ kotlin {
         }
     }
 }
+

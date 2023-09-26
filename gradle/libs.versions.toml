@@ -2,10 +2,21 @@
 kotlin = "1.9.10"
 sqldelight = "2.0.0"
 datetime = "0.4.1"
+coroutines = "1.7.1"
+grammarkit = "0.1.12"
 
 [libraries]
-sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqldelight-mysql-dialect = { module = "app.cash.sqldelight:mysql-dialect", version.ref = "sqldelight" }
+sqldelight-dialect-api = { module = "app.cash.sqldelight:dialect-api", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-compiler-env = { module = "app.cash.sqldelight:compiler-env", version.ref = "sqldelight" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+grammarKitComposer = { id = "com.alecstrong.grammar.kit.composer", version.ref = "grammarkit" }

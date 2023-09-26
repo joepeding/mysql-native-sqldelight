@@ -17,6 +17,7 @@ public class MySQLNativeDriver(
     private var transaction: Transaction? = null
 
     override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
+        return
         TODO("Not yet implemented")
     }
 
@@ -121,14 +122,17 @@ public class MySQLNativeDriver(
     }
 
     override fun notifyListeners(vararg queryKeys: String) {
+        return
         TODO("Not yet implemented")
     }
 
     override fun removeListener(vararg queryKeys: String, listener: Query.Listener) {
+        return
         TODO("Not yet implemented")
     }
 
     override fun close() {
+        return
         TODO("Not yet implemented")
     }
 }
