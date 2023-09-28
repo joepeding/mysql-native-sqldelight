@@ -2,9 +2,6 @@ plugins {
     alias(libs.plugins.sqldelight) apply true
     alias(libs.plugins.kotlin.multiplatform) apply true
 }
-//dependencies {
-//    commonMainImplementation(project(mapOf("path" to ":mysql-native-sqldelight-driver")))
-//}
 
 kotlin {
     val hostOs = System.getProperty("os.name")
@@ -24,6 +21,8 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.coroutines.test)
+                implementation(libs.sqldelight.runtime)
+                implementation(libs.stately.concurrency)
             }
         }
     }

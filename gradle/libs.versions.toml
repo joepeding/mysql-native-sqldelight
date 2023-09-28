@@ -4,6 +4,7 @@ sqldelight = "2.0.0"
 datetime = "0.4.1"
 coroutines = "1.7.1"
 grammarkit = "0.1.12"
+stately = "1.2.5"
 
 [libraries]
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
@@ -14,6 +15,10 @@ sqldelight-mysql-dialect = { module = "app.cash.sqldelight:mysql-dialect", versi
 sqldelight-dialect-api = { module = "app.cash.sqldelight:dialect-api", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-compiler-env = { module = "app.cash.sqldelight:compiler-env", version.ref = "sqldelight" }
+sqldelight-driver-test = { module = "app.cash.sqldelight:driver-test", version.ref = "sqldelight" }
+stately-core = { module = "co.touchlab:stately-common", version.ref = "stately" }
+stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }
+stately-collections = { module = "co.touchlab:stately-collections", version.ref = "stately" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
