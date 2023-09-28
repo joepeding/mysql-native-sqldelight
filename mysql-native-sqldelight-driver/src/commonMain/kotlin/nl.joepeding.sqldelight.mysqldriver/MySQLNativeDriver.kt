@@ -80,10 +80,7 @@ public class MySQLNativeDriver(
         // Check error
         require(!statement.hasError()) { statement.error().also { println(it) } }
 
-        val cursor = MySQLCursor(statement)
-        val returnVal = mapper(cursor)
-        cursor.clear()
-        return returnVal
+        return mapper(MySQLCursor(statement))
     }
 
 

@@ -26,7 +26,6 @@ class MySQLNativeSqlDelightDriverTest {
         )
     }
 
-    //TODO: This test is terribly flaky.
     @Test
     fun allTypes() {
         val queries = NativeMySQL(driver).fooQueries
