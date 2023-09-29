@@ -5,7 +5,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 
 /**
- * This DriverTest file was copied from the SQLDelight repository on 28/09/2023
+ * The DriverTest file was copied from the SQLDelight repository on 28/09/2023
  * The docs say DriverTest should be available
  * https://github.com/cashapp/sqldelight/blob/6591d9f03c0abfd65efb208cfd4ef2d805a251f1/CONTRIBUTING.md?plain=1#L42-L43
  * But this seems not to be the case.
