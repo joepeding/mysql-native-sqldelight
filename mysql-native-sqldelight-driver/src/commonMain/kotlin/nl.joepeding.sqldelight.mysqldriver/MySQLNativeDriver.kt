@@ -15,11 +15,7 @@ public class MySQLNativeDriver(
 ) : SqlDriver {
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
     private var transaction: Transaction? = null
-
-    override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
-        return
-        TODO("Not yet implemented")
-    }
+    private val listeners = mutableMapOf<String, MutableSet<Query.Listener>>()
 
     override fun currentTransaction(): Transacter.Transaction? = transaction
 
@@ -118,14 +114,23 @@ public class MySQLNativeDriver(
         return QueryResult.Unit
     }
 
-    override fun notifyListeners(vararg queryKeys: String) {
-        return
-        TODO("Not yet implemented")
+
+    override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
+        queryKeys.forEach {
+            listeners.getOrPut(it) { mutableSetOf() }.add(listener)
+        }
     }
 
     override fun removeListener(vararg queryKeys: String, listener: Query.Listener) {
-        return
-        TODO("Not yet implemented")
+        queryKeys.forEach {
+            listeners[it]?.remove(listener)
+        }
+    }
+
+    override fun notifyListeners(vararg queryKeys: String) {
+        val listenersToNotify = mutableSetOf<Query.Listener>()
+        queryKeys.forEach { key -> listeners[key]?.let { listenersToNotify.addAll(it) } }
+        listenersToNotify.forEach(Query.Listener::queryResultsChanged)
     }
 
     override fun close() {
