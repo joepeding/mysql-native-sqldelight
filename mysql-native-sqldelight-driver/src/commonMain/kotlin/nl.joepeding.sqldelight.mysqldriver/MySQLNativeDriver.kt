@@ -11,14 +11,11 @@ import mysql.*
 
 public class MySQLNativeDriver(
     val conn: CPointer<MYSQL>,
-//    listenerSupport: ListenerSupport
 ) : SqlDriver {
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
     private var transaction: Transaction? = null
     private val listeners = mutableMapOf<String, MutableSet<Query.Listener>>()
-
-    override fun currentTransaction(): Transacter.Transaction? = transaction
-
+    
     override fun execute(
         identifier: Int?,
         sql: String,
@@ -79,6 +76,8 @@ public class MySQLNativeDriver(
         return mapper(MySQLCursor(statement))
     }
 
+
+    override fun currentTransaction(): Transacter.Transaction? = transaction
 
     override fun newTransaction(): QueryResult.Value<Transacter.Transaction> {
         if (transaction != null) {
@@ -150,6 +149,8 @@ public fun MySQLNativeDriver(
 ): MySQLNativeDriver {
     mysql_library_init!!.invoke(0, null, null)
     val conn = mysql_init(null)
+    requireNotNull(conn) { "Insufficient memory to allocate MYSQL handler." }
+
     mysql_options(conn, mysql_option.MYSQL_OPT_CONNECT_TIMEOUT, cValuesOf(2))
     mysql_real_connect(
         conn,
@@ -161,22 +162,19 @@ public fun MySQLNativeDriver(
         unix_socket = null,
         clientflag = 1u,
     )
-
     require(!conn.hasError()) { conn.error() }
-    return MySQLNativeDriver(
-        conn!!,
-//        listenerSupport = listenerSupport
-    )
+
+    return MySQLNativeDriver(conn)
 }
 
 internal fun CPointer<MYSQL>?.hasError(): Boolean =
     mysql_errno(this) != 0.toUInt()
 
 internal fun CPointer<MYSQL>?.error(): String =
-    mysql_error(this)!!.toKString()
+    mysql_error(this)?.toKString() ?: ""
 
 internal fun CPointer<MYSQL_STMT>?.hasError(): Boolean =
     mysql_stmt_errno(this) != 0.toUInt()
 
 internal fun CPointer<MYSQL_STMT>?.error(): String =
-    mysql_stmt_error(this)!!.toKString()
+    mysql_stmt_error(this)?.toKString() ?: ""

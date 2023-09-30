@@ -15,10 +15,10 @@ class MySQLCursor(
     val stmt: CPointer<MYSQL_STMT>
 ) : SqlCursor {
     private val memScope: Arena = Arena()
-    private val buffers: MutableList<CVariable> = mutableListOf()
+    private val buffers: MutableList<CVariable> = mutableListOf() // TODO: Refactor to a Kotlin collection type
     private var bindings: CArrayPointer<MYSQL_BIND>
-    private var lengths: CArrayPointer<CPointerVar<ULongVar>>
-    private var nulls: CArrayPointer<CPointerVar<BooleanVar>>
+    private var lengths: CArrayPointer<CPointerVar<ULongVar>> //TODO: Refactor to a Kotlin collection type
+    private var nulls: CArrayPointer<CPointerVar<BooleanVar>> //TODO: Refactor to a Kotlin collection type
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
@@ -39,9 +39,11 @@ class MySQLCursor(
         lengths = memScope.allocArray(fieldCount)
         nulls = memScope.allocArray(fieldCount)
         (0 until fieldCount).forEach { index ->
-            val field = mysql_fetch_field(meta)!!.pointed
-            println("$index: ${field.name!!.toKString()} - ${field.type} - ${field.max_length}")
-            val buffer = when (field.type) {
+            val field = mysql_fetch_field(meta)?.pointed ?: throw IndexOutOfBoundsException(
+                "Did not find MYSQL_FIELD where one was expected."
+            )
+            println("$index: ${field.name?.toKString()} - ${field.type} - ${field.max_length}")
+            val buffer = when (field.type) { // TODO: Extract to separate function
                 MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>() // MySQL BOOLEAN is an alias for TINYINT(1)
                 MYSQL_TYPE_SHORT,
                 MYSQL_TYPE_LONG,
