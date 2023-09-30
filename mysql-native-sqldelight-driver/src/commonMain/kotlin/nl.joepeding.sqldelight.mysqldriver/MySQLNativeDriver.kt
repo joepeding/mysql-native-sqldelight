@@ -86,31 +86,44 @@ public class MySQLNativeDriver(
             println("Warning: MySQL does not support nested transaction. Outer transaction is automatically committed.")
         }
         mysql_query(conn, "START TRANSACTION") // TODO: Check success
-        return QueryResult.Value(Transaction(transaction))
+        transaction = Transaction(transaction)
+        return QueryResult.Value(transaction as Transacter.Transaction)
     }
 
-    private inner class Transaction(
+    inner class Transaction(
         override val enclosingTransaction: Transaction?
     ) : Transacter.Transaction() {
-        override fun endTransaction(successful: Boolean) = if(successful) {
-            commit()
-        } else {
-            rollback()
+        public override fun endTransaction(successful: Boolean) = when {
+            enclosingTransaction == null && successful -> commit()
+            enclosingTransaction == null && !successful -> rollback()
+            else -> {
+                transaction = enclosingTransaction
+                QueryResult.Unit
+            }
         }
 
-        fun getEnclosingTransaction(): Transaction? = enclosingTransaction
+        fun commit(): QueryResult.Value<Unit> {
+            println("COMMIT")
+            if(mysql_commit(conn)) { error(conn.error()) }
+            transaction = enclosingTransaction
+            return QueryResult.Unit
+        }
+
+        fun rollback(): QueryResult.Value<Unit> {
+            println("ROLLBACK")
+            if(mysql_rollback(conn)) { error(conn.error()) }
+            transaction = enclosingTransaction
+            return QueryResult.Unit
+        }
+//        fun getEnclosingTransaction(): Transaction? = enclosingTransaction
     }
 
-    fun commit(): QueryResult.Value<Unit> {
-        if(mysql_commit(conn)) { error(conn.error()) }
-        transaction = transaction?.getEnclosingTransaction()
-        return QueryResult.Unit
+    fun commit() {
+        transaction?.endTransaction(true)
     }
 
-    fun rollback(): QueryResult.Value<Unit> {
-        if(mysql_rollback(conn)) { error(conn.error()) }
-        transaction = transaction?.getEnclosingTransaction()
-        return QueryResult.Unit
+    fun rollback() {
+        transaction?.endTransaction(false)
     }
 
 

@@ -210,7 +210,7 @@ class MinimalTest {
         }
 
         // Start transaction
-        driver.newTransaction().value
+        val transaction = driver.newTransaction().value
 
         // Update row
         driver.execute(null, "UPDATE transactiontest SET data = ? WHERE $TESTNAME_FIELD = ?", 2) {
@@ -237,7 +237,7 @@ class MinimalTest {
         assertEquals(1L, readWithinTransaction.value.first())
 
         // Rollback transaction
-        driver.rollback()
+        (transaction as MySQLNativeDriver.Transaction).rollback()
 
         // Read row after rollback
         val readAfterTransaction = driver.executeQuery(
@@ -281,7 +281,7 @@ class MinimalTest {
         }
 
         // Start transaction
-        driver.newTransaction().value
+        val transaction = driver.newTransaction().value
 
         // Update row
         driver.execute(null, "UPDATE transactiontest SET data = ? WHERE $TESTNAME_FIELD = ?", 2) {
@@ -308,7 +308,7 @@ class MinimalTest {
         assertEquals(1L, readWithinTransaction.value.first())
 
         // Commit transaction
-        driver.commit()
+        (transaction as MySQLNativeDriver.Transaction).endTransaction(true)
 
         // Read row after commit
         val readAfterTransaction = driver.executeQuery(

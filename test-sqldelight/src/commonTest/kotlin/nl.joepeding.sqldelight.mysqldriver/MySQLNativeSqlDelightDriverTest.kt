@@ -55,21 +55,9 @@ class MySQLNativeSqlDelightDriverTest {
             time = foo.time,
             timestamp = foo.timestamp,
         )
-        driver.commit()
         println("Created Foo")
 
-        try {
-            val result = try {
-                queries.get().executeAsOne()
-            } catch (f: Throwable) {
-                println(f.message)
-//                throw f
-            }
-            assertEquals(foo, result)
-        } catch (e: Throwable) {
-            println(e.message)
-//            throw e
-        }
+        assertEquals(foo, queries.get().executeAsOne())
     }
 
     companion object {
