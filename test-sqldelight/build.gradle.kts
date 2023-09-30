@@ -1,6 +1,21 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     alias(libs.plugins.sqldelight) apply true
     alias(libs.plugins.kotlin.multiplatform) apply true
+}
+
+tasks.withType(AbstractTestTask::class.java).configureEach {
+    testLogging {
+        info.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStandardStreams = true
+        showStackTraces = true
+    }
 }
 
 kotlin {

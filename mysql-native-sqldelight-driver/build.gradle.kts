@@ -12,6 +12,7 @@ tasks.withType(AbstractTestTask::class.java).configureEach {
         exceptionFormat = TestExceptionFormat.FULL
         showExceptions = true
         showCauses = true
+        showStandardStreams = true
         showStackTraces = true
     }
 }
