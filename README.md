@@ -9,5 +9,8 @@ You can use the driver with SQLDelight, but this is not required.
 
 ## Testing
 ```shell
-./gradlew clean nativeTest
+./gradlew clean nativeTest --info
 ```
+
+## Caveats
+1. MySQL does not support nested transactions. While this driver will handle SQLDelight's post-commit and -rollback hooks correctly for nested tranactions, the actual transaction is implicitly committed as soon as the new 'nested' transaction is started. <br /> This _may_ be solved in the future by implementing `SAVEPOINT`s.
