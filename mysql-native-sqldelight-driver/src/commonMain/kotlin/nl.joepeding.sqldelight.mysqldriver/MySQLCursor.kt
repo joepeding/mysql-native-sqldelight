@@ -42,39 +42,7 @@ class MySQLCursor(
             val field = mysql_fetch_field(meta)?.pointed ?: throw IndexOutOfBoundsException(
                 "Did not find MYSQL_FIELD where one was expected."
             )
-            println("$index: ${field.name?.toKString()} - ${field.type} - ${field.max_length}")
-            val buffer = when (field.type) { // TODO: Extract to separate function
-                MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>() // MySQL BOOLEAN is an alias for TINYINT(1)
-                MYSQL_TYPE_SHORT,
-                MYSQL_TYPE_LONG,
-                MYSQL_TYPE_INT24,
-                MYSQL_TYPE_BIT,
-                MYSQL_TYPE_LONGLONG,
-                MYSQL_TYPE_YEAR -> memScope.alloc<LongVar>()
-                MYSQL_TYPE_DECIMAL,
-                MYSQL_TYPE_NEWDECIMAL,
-                MYSQL_TYPE_FLOAT,
-                MYSQL_TYPE_DOUBLE -> memScope.alloc<DoubleVar>()
-                MYSQL_TYPE_DATE,
-                MYSQL_TYPE_TIME,
-                MYSQL_TYPE_TIME2,
-                MYSQL_TYPE_DATETIME,
-                MYSQL_TYPE_DATETIME2,
-                MYSQL_TYPE_TIMESTAMP,
-                MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<MYSQL_TIME>()
-                MYSQL_TYPE_STRING,
-                MYSQL_TYPE_VAR_STRING,
-                MYSQL_TYPE_VARCHAR,
-                MYSQL_TYPE_TINY_BLOB,
-                MYSQL_TYPE_MEDIUM_BLOB,
-                MYSQL_TYPE_LONG_BLOB,
-                MYSQL_TYPE_BLOB,
-                MYSQL_TYPE_SET,
-                MYSQL_TYPE_ENUM -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
-                MYSQL_TYPE_GEOMETRY -> throw IllegalStateException("GEOMETRY field type not supported, use ST_AsText or ST_AsBinary to read as String or ByteArray")
-                MYSQL_TYPE_NULL -> TODO("Can not find documentation about what a NULL-type column is for.")
-                else -> { error("Encountered unknown field type: ${field.type}") }
-            }
+            val buffer = bufferForField(field)
             bindings[index].buffer_type = field.type
             bindings[index].buffer = buffer.ptr
             bindings[index].buffer_length = field.max_length
@@ -85,6 +53,39 @@ class MySQLCursor(
             buffers.add(buffer)
         }
         mysql_stmt_bind_result(stmt, bindings)
+    }
+
+    private fun bufferForField(field: MYSQL_FIELD) = when (field.type) {
+        MYSQL_TYPE_TINY -> memScope.alloc<ByteVar>() // MySQL BOOLEAN is an alias for TINYINT(1)
+        MYSQL_TYPE_SHORT,
+        MYSQL_TYPE_LONG,
+        MYSQL_TYPE_INT24,
+        MYSQL_TYPE_BIT,
+        MYSQL_TYPE_LONGLONG,
+        MYSQL_TYPE_YEAR -> memScope.alloc<LongVar>()
+        MYSQL_TYPE_DECIMAL,
+        MYSQL_TYPE_NEWDECIMAL,
+        MYSQL_TYPE_FLOAT,
+        MYSQL_TYPE_DOUBLE -> memScope.alloc<DoubleVar>()
+        MYSQL_TYPE_DATE,
+        MYSQL_TYPE_TIME,
+        MYSQL_TYPE_TIME2,
+        MYSQL_TYPE_DATETIME,
+        MYSQL_TYPE_DATETIME2,
+        MYSQL_TYPE_TIMESTAMP,
+        MYSQL_TYPE_TIMESTAMP2 -> memScope.alloc<MYSQL_TIME>()
+        MYSQL_TYPE_STRING,
+        MYSQL_TYPE_VAR_STRING,
+        MYSQL_TYPE_VARCHAR,
+        MYSQL_TYPE_TINY_BLOB,
+        MYSQL_TYPE_MEDIUM_BLOB,
+        MYSQL_TYPE_LONG_BLOB,
+        MYSQL_TYPE_BLOB,
+        MYSQL_TYPE_SET,
+        MYSQL_TYPE_ENUM -> memScope.allocArray<ByteVar>(field.max_length.toInt()).pointed
+        MYSQL_TYPE_GEOMETRY -> throw IllegalStateException("GEOMETRY field type not supported, use ST_AsText or ST_AsBinary to read as String or ByteArray")
+        MYSQL_TYPE_NULL -> TODO("Can not find documentation about what a NULL-type column is for.")
+        else -> { error("Encountered unknown field type: ${field.type}") }
     }
 
     override fun getBoolean(index: Int): Boolean? {
