@@ -42,15 +42,16 @@ class MySQLCursor(
             val field = mysql_fetch_field(meta)?.pointed ?: throw IndexOutOfBoundsException(
                 "Did not find MYSQL_FIELD where one was expected."
             )
-            val buffer = bufferForField(field)
-            bindings[index].buffer_type = field.type
-            bindings[index].buffer = buffer.ptr
-            bindings[index].buffer_length = field.max_length
-            lengths[index] = memScope.alloc<ULongVar>().ptr
-            bindings[index].length = lengths[index]
-            nulls[index] = memScope.alloc<BooleanVar>().ptr
-            bindings[index].is_null = nulls[index]
-            buffers.add(buffer)
+            val buffer = bufferForField(field).also { buffers.add(it) }
+            val length = memScope.alloc<ULongVar>().ptr.also { lengths[index] = it }
+            val isNull = memScope.alloc<BooleanVar>().ptr.also { nulls[index] = it }
+            bindings[index].apply {
+                this.buffer_type = field.type
+                this.buffer = buffer.ptr
+                this.buffer_length = field.max_length
+                this.length = length
+                this.is_null = isNull
+            }
         }
         mysql_stmt_bind_result(stmt, bindings)
     }
@@ -176,7 +177,7 @@ class MySQLCursor(
             MYSQL_DATA_TRUNCATED -> throw Exception("MySQL stmt fetch MYSQL_DATA_TRUNCATED")
             else -> throw IllegalStateException("Unexpected result for `mysql_stmt_fetch`: $it")
         }
-    }.let { Value(it) } // TODO: Use QueryResult.AsyncValue instead?
+    }.let { Value(it) }
 
     private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
 
