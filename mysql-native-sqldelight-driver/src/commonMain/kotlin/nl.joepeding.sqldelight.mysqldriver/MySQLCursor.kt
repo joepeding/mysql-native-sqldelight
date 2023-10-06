@@ -15,10 +15,10 @@ class MySQLCursor(
     val stmt: CPointer<MYSQL_STMT>
 ) : SqlCursor {
     private val memScope: Arena = Arena()
-    private val buffers: MutableList<CVariable> = mutableListOf() // TODO: Refactor to a Kotlin collection type
+    private val buffers: MutableList<CVariable> = mutableListOf()
     private var bindings: CArrayPointer<MYSQL_BIND>
-    private var lengths: CArrayPointer<CPointerVar<ULongVar>> //TODO: Refactor to a Kotlin collection type
-    private var nulls: CArrayPointer<CPointerVar<BooleanVar>> //TODO: Refactor to a Kotlin collection type
+    private var lengths: CArrayPointer<CPointerVar<ULongVar>>
+    private var nulls: CArrayPointer<CPointerVar<BooleanVar>>
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)

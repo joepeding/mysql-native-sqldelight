@@ -7,7 +7,7 @@ import app.cash.sqldelight.dialects.mysql.grammar.psi.MySqlTypeName
 import com.alecstrong.sql.psi.core.psi.*
 import com.squareup.kotlinpoet.*
 
-class MysqlNativeDialect : SqlDelightDialect by MySqlDialect() { // TODO: Delegate to MySqlDialect?
+class MysqlNativeDialect : SqlDelightDialect by MySqlDialect() {
     override val runtimeTypes: RuntimeTypes = RuntimeTypes(
         ClassName("nl.joepeding.sqldelight.mysqldriver", "MySQLCursor"),
         ClassName("nl.joepeding.sqldelight.mysqldriver", "MySQLPreparedStatement"),
@@ -85,9 +85,9 @@ private enum class NativeMySqlType(override val javaType: TypeName) : DialectTyp
     },
 //    NUMERIC(ClassName("java.math", "BigDecimal")), // TODO?
     DATE(ClassName("kotlinx.datetime", "LocalDate")),
-    TIME(ClassName("kotlin.time", "Duration")), // TODO: Check/test
-    TIMESTAMP(ClassName("kotlinx.datetime", "LocalDateTime")), // TODO: Check/test
-    DATETIME(ClassName("kotlinx.datetime", "Instant")), // TODO: Check/test
+    TIME(ClassName("kotlin.time", "Duration")),
+    TIMESTAMP(ClassName("kotlinx.datetime", "LocalDateTime")),
+    DATETIME(ClassName("kotlinx.datetime", "Instant")),
     ;
 
     override fun prepareStatementBinder(columnIndex: CodeBlock, value: CodeBlock): CodeBlock {

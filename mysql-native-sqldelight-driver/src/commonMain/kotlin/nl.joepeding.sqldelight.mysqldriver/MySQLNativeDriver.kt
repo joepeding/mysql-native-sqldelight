@@ -9,7 +9,7 @@ import app.cash.sqldelight.db.SqlPreparedStatement
 import kotlinx.cinterop.*
 import mysql.*
 
-public class MySQLNativeDriver(
+class MySQLNativeDriver(
     val conn: CPointer<MYSQL>,
 ) : SqlDriver {
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
@@ -115,7 +115,6 @@ public class MySQLNativeDriver(
             transaction = enclosingTransaction
             return QueryResult.Unit
         }
-//        fun getEnclosingTransaction(): Transaction? = enclosingTransaction
     }
 
     fun commit() {
@@ -151,14 +150,13 @@ public class MySQLNativeDriver(
     }
 }
 
-public fun MySQLNativeDriver(
+fun MySQLNativeDriver(
     host: String,
     database: String,
     user: String,
     password: String,
     port: Int = 3306,
 //        options: String? = null,
-//        listenerSupport: ListenerSupport = ListenerSupport.None
 ): MySQLNativeDriver {
     mysql_library_init!!.invoke(0, null, null)
     val conn = mysql_init(null)

@@ -71,7 +71,6 @@ public class MySQLPreparedStatement(
         }
     }
 
-    // TODO: Test
     fun bindDate(index: Int, date: LocalDate?) {
         println("Binding date")
         bindings[index].apply {

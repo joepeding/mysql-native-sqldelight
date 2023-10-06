@@ -11,10 +11,6 @@ import app.cash.sqldelight.db.SqlSchema
  * But this seems not to be the case.
  *
  * The intention is to remove this file if this test dependency is published.
- *
- * TODO: The original DriverTest from the SQLDelight repo uses a `changes`-function that implements
- *       SQLite-specific functionality. It seems like this should no longer be necessary, because
- *       the `execute` function on the `SqlDriver` should return the number of affected rows already.
  */
 class MySQLNativeTransacterTest : TransacterTest() {
     override fun setupDatabase(schema: SqlSchema<QueryResult.Value<Unit>>): SqlDriver = MySQLNativeDriver(
