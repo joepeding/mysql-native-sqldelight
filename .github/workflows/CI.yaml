@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        os: [ 'macos-latest' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Homebrew/actions/setup-homebrew@master
+        id: set-up-homebrew
+      - run: brew install mysql
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: 17
+      - uses: gradle/gradle-build-action@v2
+        with:
+          dependency-graph: generate-and-submit
+          gradle-home-cache-cleanup: true
+      - run: ./gradlew assemble
+      - uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: "8.0"
+      - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
+      - run: ./gradlew nativeTest
