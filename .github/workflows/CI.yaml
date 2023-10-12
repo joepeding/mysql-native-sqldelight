@@ -21,7 +21,6 @@ jobs:
         id: set-up-homebrew
       - run: brew install mysql@8.1
       - run: mysql.server start
-      - run: brew install mysql
       - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
