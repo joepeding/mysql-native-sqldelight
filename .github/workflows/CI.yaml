@@ -32,4 +32,4 @@ jobs:
         with:
           mysql-version: "8.0"
       - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
-      - run: ./gradlew nativeTest
+      - run: ./gradlew allTests

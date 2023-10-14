@@ -1,5 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     alias(libs.plugins.sqldelight) apply true
@@ -19,14 +22,14 @@ tasks.withType(AbstractTestTask::class.java).configureEach {
 }
 
 kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosArm64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    when (HostManager.host) {
+        KonanTarget.LINUX_X64 -> linuxX64()
+        KonanTarget.LINUX_ARM64 -> linuxArm64()
+        KonanTarget.MACOS_ARM64 -> macosArm64()
+        KonanTarget.MACOS_X64 -> macosX64()
+        else -> error("Not supported")
     }
+
     sourceSets {
         commonMain {
             dependencies {

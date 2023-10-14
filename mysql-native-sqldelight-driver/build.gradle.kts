@@ -1,5 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply true
@@ -18,25 +21,24 @@ tasks.withType(AbstractTestTask::class.java).configureEach {
 }
 
 kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosArm64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
-
-    nativeTarget.apply {
-        binaries {
-            executable {
-//                entryPoint = "nl.joepeding.mysqldriver.main"
+    fun KotlinNativeTarget.registerCinterop() {
+        compilations.named("main") {
+            cinterops {
+                register("mysql") {
+                    defFile(project.file("src/nativeInterop/cinterop/mysql.def"))
+                }
             }
         }
-        compilations["main"].cinterops {
-            val mysql by creating
-        }
     }
+
+    when (HostManager.host) {
+        KonanTarget.LINUX_X64 -> linuxX64 { registerCinterop() }
+        KonanTarget.LINUX_ARM64 -> linuxArm64 { registerCinterop() }
+        KonanTarget.MACOS_ARM64 -> macosArm64 { registerCinterop() }
+        KonanTarget.MACOS_X64 -> macosX64 { registerCinterop() }
+        else -> error("Not supported")
+    }
+
     sourceSets {
         all {
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
