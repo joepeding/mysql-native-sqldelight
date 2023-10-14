@@ -20,6 +20,7 @@ jobs:
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
       - run: brew install mysql@8.1
+      - run: mysql.server start
       - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
@@ -28,8 +29,8 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
-      - uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
+#      - uses: shogo82148/actions-setup-mysql@v1
+#        with:
+#          mysql-version: "8.0"
       - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
       - run: ./gradlew allTests
