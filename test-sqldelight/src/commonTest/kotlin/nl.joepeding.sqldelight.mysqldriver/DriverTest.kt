@@ -35,7 +35,7 @@ abstract class DriverTest {
         override val version: Long = 1
 
         override fun create(driver: SqlDriver): QueryResult.Value<Unit> {
-            driver.execute(null, "DROP TABLE test;", 0)
+            driver.execute(null, "DROP TABLE IF EXISTS test;", 0)
             driver.execute(
                 0,
                 """
@@ -46,7 +46,7 @@ abstract class DriverTest {
         """.trimMargin(),
                 0,
             )
-            driver.execute(null, "DROP TABLE nullability_test;", 0)
+            driver.execute(null, "DROP TABLE IF EXISTS nullability_test;", 0)
             driver.execute(
                 1,
                 """
