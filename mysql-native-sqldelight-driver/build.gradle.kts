@@ -32,7 +32,20 @@ kotlin {
     }
 
     when (HostManager.host) {
-        KonanTarget.LINUX_X64 -> linuxX64 { registerCinterop() }
+        KonanTarget.LINUX_X64 -> linuxX64 {
+            registerCinterop()
+            binaries {
+                executable {
+                    val sysRoot = "/"
+                    val libGccVersion = "11.2.0"
+                    val libGcc = "/lib/gcc/x86_64-pc-linux-gnu/$libGccVersion"
+                    val overriddenProperties = "targetSysRoot.linux_x64=$sysRoot;libGcc.linux_x64=$libGcc"
+                    freeCompilerArgs += listOf(
+                        "-Xoverride-konan-properties=${overriddenProperties}"
+                    )
+                }
+            }
+        }
         KonanTarget.LINUX_ARM64 -> linuxArm64 { registerCinterop() }
         KonanTarget.MACOS_ARM64 -> macosArm64 { registerCinterop() }
         KonanTarget.MACOS_X64 -> macosX64 { registerCinterop() }

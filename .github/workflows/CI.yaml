@@ -22,27 +22,28 @@ jobs:
       - uses: actions/checkout@v4
       - name: Remove pre-installed MySQL & install new one
         run: |
-             sudo apt list --installed
              sudo apt-get remove mysql-clie* -y
              sudo apt-get remove mysql-comm* -y
              sudo apt-get remove mysql-serv* -y
              sudo apt-get update
-             ldd --version
-             gcc --version
-             ls -al /lib/libc*
-             gcc --print-file-name=libc.a
-#             sudo apt install -y gcc-13 g++-13
-#             sudo apt install -y libstdc++6
-#             CC="/usr/lusers/jacktose/.linuxbrew/bin/gcc-12"
-#             sudo apt-get purge mysql*
         if: runner.os == 'Linux'
+      - run: |
+          # Download URL taken from: https://dev.mysql.com/downloads/mysql/
+          # file of interest: "download/lib/libmysqlclient.a"
+          curl -s -o download.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.1/mysql-8.1.0-linux-glibc2.17-x86_64-minimal.tar.xz
+          ls -lha | grep download
+          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c
+          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c --status
+          tar -xf download.tar.xz
+          ls -lha $PWD/*
+        if: runner.os == 'Linux'
+        name: Download, validate and unpack pre-built MySQL with compatible glibc
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
-      - run: brew install gcc
-        if: runner.os == 'Linux'
       - run: brew install mysql@8.1
       - run: brew install openssl@3.1
       - run: mysql.server start
+      - run: mysql_config --cflags --libs
       - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
