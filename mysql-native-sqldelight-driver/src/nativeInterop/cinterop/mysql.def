@@ -1,8 +1,8 @@
 headers = mysql.h
 package = mysql
 staticLibraries = libmysqlclient.a libzstd.a libz.a
-libraryPaths = /opt/homebrew/opt/mysql@8.1/lib /opt/homebrew/opt/zstd/lib /opt/homebrew/opt/zlib/lib
+libraryPaths = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /opt/homebrew/opt/zstd/lib /usr/local/opt/zstd/lib /opt/homebrew/opt/zlib/lib /usr/local/opt/zlib/lib
 
-compilerOpts = -I/opt/homebrew/opt/mysql@8.1/include/mysql/
+compilerOpts = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql
 #linkerOpts = -L"/opt/homebrew/opt/openssl@1.1/lib/" -lssl -lcrypto
-linkerOpts = -L"/opt/homebrew/opt/openssl@3.1/lib/" -lssl -lcrypto
+linkerOpts = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto

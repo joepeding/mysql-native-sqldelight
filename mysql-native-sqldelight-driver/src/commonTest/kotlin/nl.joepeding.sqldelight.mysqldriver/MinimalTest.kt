@@ -23,7 +23,6 @@ class MinimalTest {
             "",
             3306
         )
-//        driver.execute(null, "DROP TABLE blaat;", 0) // Not enabled by default, convenient to be able to view DB
         driver.execute(null, "CREATE TABLE IF NOT EXISTS `blaat`(" +
                 "`$TESTNAME_FIELD` VARCHAR(255) NOT NULL," +
                 "`$BOOLEAN_FIELD` BOOLEAN DEFAULT NULL," +
