@@ -20,6 +20,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Remove pre-installed MySQL
+        run: |
+             sudo apt list --installed
+             sudo apt-get remove mysql-clie* -y
+             sudo apt-get remove mysql-comm* -y
+             sudo apt-get remove mysql-serv* -y
+#             sudo apt-get purge mysql*
+        if: runner.os == 'Linux'
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
       - run: brew install mysql@8.1
