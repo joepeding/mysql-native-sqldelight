@@ -13,5 +13,5 @@ compilerOpts.linux_x64 = -I/home/linuxbrew/.linuxbrew/opt/mysql@8.1/include/mysq
 #linkerOpts = -L"/opt/homebrew/opt/openssl@1.1/lib/" -lssl -lcrypto
 linkerOpts.macos_arm64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
 linkerOpts.macos_x64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
-linkerOpts.linux_arm64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
-linkerOpts.linux_x64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
+linkerOpts.linux_arm64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto --allow-shlib-undefined
+linkerOpts.linux_x64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto --allow-shlib-undefined

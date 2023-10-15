@@ -20,17 +20,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Remove pre-installed MySQL
+      - name: Remove pre-installed MySQL & install new one
         run: |
              sudo apt list --installed
              sudo apt-get remove mysql-clie* -y
              sudo apt-get remove mysql-comm* -y
              sudo apt-get remove mysql-serv* -y
+             sudo apt-get update
+             ldd --version
+             gcc --version
+             ls -al /lib/libc*
+             gcc --print-file-name=libc.a
+#             sudo apt install -y gcc-13 g++-13
+#             sudo apt install -y libstdc++6
+#             CC="/usr/lusers/jacktose/.linuxbrew/bin/gcc-12"
 #             sudo apt-get purge mysql*
         if: runner.os == 'Linux'
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
+      - run: brew install gcc
+        if: runner.os == 'Linux'
       - run: brew install mysql@8.1
+      - run: brew install openssl@3.1
       - run: mysql.server start
       - uses: actions/setup-java@v3
         with:
