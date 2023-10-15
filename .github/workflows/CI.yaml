@@ -12,8 +12,11 @@ jobs:
     permissions:
       contents: write
     strategy:
+      # Only 1 parallel job with fail-fast, so if Ubuntu fails the more expensive macOS job is skipped.
+      max-parallel: 1
+      fail-fast: true
       matrix:
-        os: [ 'macos-latest' ]
+        os: [ 'ubuntu-latest', 'macos-latest' ]
 
     steps:
       - uses: actions/checkout@v4
