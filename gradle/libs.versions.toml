@@ -4,7 +4,7 @@ sqldelight = "2.0.0"
 datetime = "0.4.1"
 coroutines = "1.7.3"
 grammarkit = "0.1.12"
-stately = "1.2.5"
+stately = "2.0.5"
 
 [libraries]
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
