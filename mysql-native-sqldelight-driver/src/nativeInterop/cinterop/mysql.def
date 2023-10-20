@@ -17,4 +17,4 @@ compilerOpts.linux_x64 = -I/home/linuxbrew/.linuxbrew/Cellar/mysql/8.1.0/include
 linkerOpts.macos_arm64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
 linkerOpts.macos_x64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
 linkerOpts.linux_arm64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -L/home/linuxbrew/.linuxbrew/Cellar/mysql/8.1.0/lib -L/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5/lib -lmysqlclient -lz -lssl -lcrypto -lresolv -lm -lc -ldl -lz
-linkerOpts.linux_x64 = -L"/home/linuxbrew/.linuxbrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -L/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5/lib -lz -lssl -lcrypto -lresolv -lm -lc -ldl
+linkerOpts.linux_x64 = -L"/home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/" -L/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5/lib -lz -lssl -lcrypto -lresolv -lm -lc -ldl
