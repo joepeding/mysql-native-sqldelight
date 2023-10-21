@@ -14,4 +14,8 @@ RUN cd openssl-3.1.3 && ./config --prefix=/usr/local/openssl --openssldir=/usr/l
 RUN cd openssl-3.1.3 && make -j $(nproc)
 RUN cd openssl-3.1.3 && make install
 RUN ldconfig
-
+# Install MySQL 8
+RUN rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm
+RUN rpm --import http://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+RUN sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/mysql-community.repo
+RUN yum -y --enablerepo=mysql80-community install mysql-community-server
