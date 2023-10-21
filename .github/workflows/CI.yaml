@@ -16,17 +16,17 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        os: [ 'ubuntu-20.04', 'macos-latest' ]
+        os: [ 'ubuntu-22.04', 'macos-latest' ]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Remove pre-installed MySQL & install new one
-        run: |
-             sudo apt-get remove mysql-clie* -y
-             sudo apt-get remove mysql-comm* -y
-             sudo apt-get remove mysql-serv* -y
-             sudo apt-get update
-        if: runner.os == 'Linux'
+#      - name: Remove pre-installed MySQL & install new one
+#        run: |
+#             sudo apt-get remove mysql-clie* -y
+#             sudo apt-get remove mysql-comm* -y
+#             sudo apt-get remove mysql-serv* -y
+#             sudo apt-get update
+#        if: runner.os == 'Linux'
       - run: |
           # Download URL taken from: https://dev.mysql.com/downloads/mysql/
           # file of interest: "download/lib/libmysqlclient.a"
@@ -41,8 +41,13 @@ jobs:
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
       - run: brew install mysql@8.1
+        if: runner.os != 'Linux'
       - run: brew install openssl@3.1
+        if: runner.os != 'Linux'
       - run: mysql.server start
+        if: runner.os != 'Linux'
+      - run: sudo systemctl start mysql.service
+        if: runner.os == 'Linux'
       - run: mysql_config --cflags --libs
       - uses: actions/setup-java@v3
         with:
@@ -52,5 +57,8 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
+#      - run: mysql -uroot -proot 'SET PASSWORD FOR root@localhost='';'
+      - run: mysqladmin -u root -proot password ''
+        if: runner.os == 'Linux'
       - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
       - run: ./gradlew allTests
