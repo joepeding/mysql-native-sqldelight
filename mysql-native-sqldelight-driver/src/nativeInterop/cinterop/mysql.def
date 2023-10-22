@@ -7,7 +7,8 @@ libraryPaths.macos_arm64 = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/
 libraryPaths.macos_x64 = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /opt/homebrew/opt/zstd/lib /usr/local/opt/zstd/lib /opt/homebrew/opt/zlib/lib /usr/local/opt/zlib/lib
 #libraryPaths.linux_arm64 = /home/linuxbrew/.linuxbrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /home/linuxbrew/.linuxbrew/opt/zstd/lib /usr/local/opt/zstd/lib /home/linuxbrew/.linuxbrew/opt/zlib/lib /usr/local/opt/zlib/lib
 #libraryPaths.linux_x64 = /home/linuxbrew/.linuxbrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /home/linuxbrew/.linuxbrew/opt/zstd/lib /usr/local/opt/zstd/lib /home/linuxbrew/.linuxbrew/opt/zlib/lib /usr/local/opt/zlib/lib
-libraryPaths.linux_x64 = /usr/local/opt/mysql/lib /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/mysql-8.1.0-linux-glibc2.17-x86_64-minimal/lib
+#libraryPaths.linux_x64 = /usr/local/opt/mysql/lib /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/mysql-8.1.0-linux-glibc2.17-x86_64-minimal/lib
+libraryPaths.linux_x64 = /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/
 
 compilerOpts.macos_arm64 = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql
 compilerOpts.macos_x64 = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql

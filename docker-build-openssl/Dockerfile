@@ -39,6 +39,7 @@ RUN cd mysql-8.1.0/bld && cmake -D CMAKE_C_COMPILER="/opt/rh/devtoolset-8/root/u
                                 -D CMAKE_LINKER="/opt/rh/devtoolset-8/root/usr/bin/ld" \
                                 -D WITH_BOOST="../../" \
                                 -D WITH_SSL="/usr/local/openssl" \
+                                -D WITHOUT_SERVER=ON \
                                 ..
 RUN cd mysql-8.1.0/bld && make
 RUN cd mysql-8.1.0/bld && make install

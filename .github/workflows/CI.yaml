@@ -27,7 +27,6 @@ jobs:
 #             sudo apt-get remove mysql-serv* -y
 #             sudo apt-get update
 #        if: runner.os == 'Linux'
-      - run: docker build docker-build-openssl
       - run: |
           # Download URL taken from: https://dev.mysql.com/downloads/mysql/
           # file of interest: "download/lib/libmysqlclient.a"
