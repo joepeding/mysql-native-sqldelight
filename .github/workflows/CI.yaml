@@ -57,7 +57,6 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
-#      - run: mysql -uroot -proot 'SET PASSWORD FOR root@localhost='';'
       - run: mysqladmin -u root -proot password ''
         if: runner.os == 'Linux'
       - run: mysql -uroot -e 'CREATE DATABASE onsdb;'

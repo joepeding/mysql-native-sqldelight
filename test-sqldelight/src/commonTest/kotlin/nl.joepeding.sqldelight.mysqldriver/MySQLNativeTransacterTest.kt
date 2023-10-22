@@ -14,7 +14,7 @@ import app.cash.sqldelight.db.SqlSchema
  */
 class MySQLNativeTransacterTest : TransacterTest() {
     override fun setupDatabase(schema: SqlSchema<QueryResult.Value<Unit>>): SqlDriver = MySQLNativeDriver(
-        "localhost",
+        "127.0.0.1",
         "onsdb",
         "root",
         "",
