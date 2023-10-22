@@ -16,39 +16,29 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        os: [ 'ubuntu-22.04', 'macos-latest' ]
+        os: [ 'ubuntu-latest', 'macos-latest' ]
 
     steps:
       - uses: actions/checkout@v4
-#      - name: Remove pre-installed MySQL & install new one
-#        run: |
-#             sudo apt-get remove mysql-clie* -y
-#             sudo apt-get remove mysql-comm* -y
-#             sudo apt-get remove mysql-serv* -y
-#             sudo apt-get update
-#        if: runner.os == 'Linux'
-      - run: |
-          # Download URL taken from: https://dev.mysql.com/downloads/mysql/
-          # file of interest: "download/lib/libmysqlclient.a"
-          curl -s -o download.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.1/mysql-8.1.0-linux-glibc2.17-x86_64-minimal.tar.xz
-          ls -lha | grep download
-          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c
-          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c --status
-          tar -xf download.tar.xz
-          ls -lha $PWD/*
-        if: runner.os == 'Linux'
-        name: Download, validate and unpack pre-built MySQL with compatible glibc
       - uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
-      - run: brew install mysql@8.1
         if: runner.os != 'Linux'
-      - run: brew install openssl@3.1
-        if: runner.os != 'Linux'
-      - run: mysql.server start
-        if: runner.os != 'Linux'
-      - run: sudo systemctl start mysql.service
+      - run: |
+          # Download URL taken from: https://dev.mysql.com/downloads/mysql/
+          # file of interest after extracting: /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/mysql-8.1.0-linux-glibc2.17-x86_64-minimal/include/mysql.h
+          curl -s -o download.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.1/mysql-8.1.0-linux-glibc2.17-x86_64-minimal.tar.xz
+          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c --status
+          tar -xf download.tar.xz
+          sudo systemctl start mysql.service
+          mysqladmin -u root -proot password ''
         if: runner.os == 'Linux'
-      - run: mysql_config --cflags --libs
+        name: Download, validate and unpack pre-built MySQL with compatible glibc (just for header file); Start pre-installed MySQL
+      - run: |
+          brew install mysql@8.1
+          brew install openssl@3.1
+          mysql.server start
+        if: runner.os != 'Linux'
+        name: Install MySQL 8.1, OpenSSL and start MySQL on MacOS
       - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
@@ -57,7 +47,5 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
-      - run: mysqladmin -u root -proot password ''
-        if: runner.os == 'Linux'
       - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
       - run: ./gradlew allTests
