@@ -33,12 +33,15 @@ jobs:
           mysqladmin -u root -proot password ''
         if: runner.os == 'Linux'
         name: Download, validate and unpack pre-built MySQL with compatible glibc (just for header file); Start pre-installed MySQL
+
+
       - id: buildx
         if: runner.os == 'Linux'
         name: Set up buildx
         uses: docker/setup-buildx-action@master
         with:
           install: true
+
       - name: Cache Docker layers
         if: runner.os == 'Linux'
         uses: actions/cache@v2
@@ -48,27 +51,33 @@ jobs:
           key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-multi-buildx
+
       - name: Compile Kotlin/Native-compatible libcrypto, libssl & libmysqlclient in Docker container
         id: container
         if: runner.os == 'Linux'
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           file: docker-build-openssl/Dockerfile
           # Set the desired build target here
           push: false
+          load: true
+          tags: buildcontainer
           cache-from: type=local,src=/tmp/.buildx-cache
           # Note the mode=max here
           # More: https://github.com/moby/buildkit#--export-cache-options
           # And: https://github.com/docker/buildx#--cache-tonametypetypekeyvalue
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
       - name: Move cache
+        if: runner.os == 'Linux'
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
       - run: |
-          id=(docker create ${{ steps.container.outputs.imageid }})
+          id=$(docker create buildcontainer)
           docker cp $id:/usr/local/mysql/include/mysql.h ./docker-build-openssl
           docker cp $id:/usr/local/mysql/lib/libmysqlclient.a ./docker-build-openssl
           docker cp $id:/usr/local/openssl/lib64/libcrypto.a ./docker-build-openssl
