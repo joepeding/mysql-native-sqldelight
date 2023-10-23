@@ -20,24 +20,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: Homebrew/actions/setup-homebrew@master
-        id: set-up-homebrew
-        if: runner.os != 'Linux'
-      - run: |
-          # Download URL taken from: https://dev.mysql.com/downloads/mysql/
-          # file of interest after extracting: /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/mysql-8.1.0-linux-glibc2.17-x86_64-minimal/include/mysql.h
-          curl -s -o download.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.1/mysql-8.1.0-linux-glibc2.17-x86_64-minimal.tar.xz
-          echo bc9573e67f1000832fd79a29e9dbf366 download.tar.xz | md5sum -c --status
-          tar -xf download.tar.xz
+
+      - name: Start pre-installed MySQL
+        if: runner.os == 'Linux'
+        run: |
           sudo systemctl start mysql.service
           mysqladmin -u root -proot password ''
-        if: runner.os == 'Linux'
-        name: Download, validate and unpack pre-built MySQL with compatible glibc (just for header file); Start pre-installed MySQL
 
-
-      - id: buildx
+      - name: Set up buildx
         if: runner.os == 'Linux'
-        name: Set up buildx
+        id: buildx
         uses: docker/setup-buildx-action@master
         with:
           install: true
@@ -47,27 +39,22 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          # Key is named differently to avoid collision
           key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-multi-buildx
 
       - name: Compile Kotlin/Native-compatible libcrypto, libssl & libmysqlclient in Docker container
-        id: container
         if: runner.os == 'Linux'
+        id: container
         uses: docker/build-push-action@v3
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           file: docker-build-openssl/Dockerfile
-          # Set the desired build target here
           push: false
           load: true
           tags: buildcontainer
           cache-from: type=local,src=/tmp/.buildx-cache
-          # Note the mode=max here
-          # More: https://github.com/moby/buildkit#--export-cache-options
-          # And: https://github.com/docker/buildx#--cache-tonametypetypekeyvalue
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
 
       - name: Move cache
@@ -76,27 +63,42 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - run: |
+      - name: Copy mysql.h, libmysqlclient.a, libssl.a, libcrypto.a from container
+        if: runner.os == 'Linux'
+        run: |
           id=$(docker create buildcontainer)
-          docker cp $id:/usr/local/mysql/include/mysql.h ./docker-build-openssl
+          docker cp $id:/usr/local/mysql/include ./docker-build-openssl
           docker cp $id:/usr/local/mysql/lib/libmysqlclient.a ./docker-build-openssl
           docker cp $id:/usr/local/openssl/lib64/libcrypto.a ./docker-build-openssl
           docker cp $id:/usr/local/openssl/lib64/libssl.a ./docker-build-openssl
           docker rm -v $id
-        if: runner.os == 'Linux'
-      - run: |
+
+      - name: Set up Homebrew
+        if: runner.os != 'Linux'
+        uses: Homebrew/actions/setup-homebrew@master
+        id: set-up-homebrew
+
+      - name: Install MySQL 8.1, OpenSSL 3.1 and start MySQL
+        run: |
           brew install mysql@8.1
           brew install openssl@3.1
           mysql.server start
         if: runner.os != 'Linux'
-        name: Install MySQL 8.1, OpenSSL and start MySQL on MacOS
-      - uses: actions/setup-java@v3
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
           java-version: 17
-      - uses: gradle/gradle-build-action@v2
+
+      - name: Set up gradle build
+        uses: gradle/gradle-build-action@v2
         with:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
-      - run: mysql -uroot -e 'CREATE DATABASE onsdb;'
-      - run: ./gradlew allTests
+
+      - name: Create database for test use
+        run: mysql -uroot -e 'CREATE DATABASE onsdb;'
+
+      - name: Run tests
+        run: ./gradlew allTests
