@@ -1,8 +1,20 @@
 headers = mysql.h
 package = mysql
-staticLibraries = libmysqlclient.a libzstd.a libz.a
-libraryPaths = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /opt/homebrew/opt/zstd/lib /usr/local/opt/zstd/lib /opt/homebrew/opt/zlib/lib /usr/local/opt/zlib/lib
+staticLibraries.macos_arm64 = libmysqlclient.a libzstd.a libz.a
+staticLibraries.macos_x64 = libmysqlclient.a libzstd.a libz.a
+staticLibraries.linux_arm64 = libmysqlclient.a
+staticLibraries.linux_x64 = libmysqlclient.a
+libraryPaths.macos_arm64 = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /opt/homebrew/opt/zstd/lib /usr/local/opt/zstd/lib /opt/homebrew/opt/zlib/lib /usr/local/opt/zlib/lib
+libraryPaths.macos_x64 = /opt/homebrew/opt/mysql@8.1/lib /usr/local/opt/mysql/lib /opt/homebrew/opt/zstd/lib /usr/local/opt/zstd/lib /opt/homebrew/opt/zlib/lib /usr/local/opt/zlib/lib
+libraryPaths.linux_arm64 = /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/
+libraryPaths.linux_x64 = /home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/
 
-compilerOpts = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql
+compilerOpts.macos_arm64 = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql
+compilerOpts.macos_x64 = -I/opt/homebrew/opt/mysql@8.1/include/mysql/ -I/usr/local/opt/mysql/include/mysql
+compilerOpts.linux_arm64 = -I/home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/include -I/home/linuxbrew/.linuxbrew/opt/zstd/lib -I/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5
+compilerOpts.linux_x64 = -I/home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/include -I/home/linuxbrew/.linuxbrew/opt/zstd/lib -I/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5
 #linkerOpts = -L"/opt/homebrew/opt/openssl@1.1/lib/" -lssl -lcrypto
-linkerOpts = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
+linkerOpts.macos_arm64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
+linkerOpts.macos_x64 = -L"/opt/homebrew/opt/openssl@3.1/lib/" -L"/usr/local/opt/openssl@3.1/lib/" -lssl -lcrypto
+linkerOpts.linux_arm64 = -L"/home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/" -L/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5/lib -lz -lssl -lcrypto -lresolv -lm -lc -ldl
+linkerOpts.linux_x64 = -L"/home/runner/work/mysql-native-sqldelight/mysql-native-sqldelight/docker-build-openssl/" -L/home/linuxbrew/.linuxbrew/Cellar/zstd/1.5.5/lib -lz -lssl -lcrypto -lresolv -lm -lc -ldl

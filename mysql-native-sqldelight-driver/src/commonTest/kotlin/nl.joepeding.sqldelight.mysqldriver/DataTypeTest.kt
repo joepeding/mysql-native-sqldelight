@@ -15,7 +15,7 @@ class DataTypeTest {
     @BeforeTest // @BeforeClass not supported
     fun setup() {
         driver = MySQLNativeDriver(
-            "localhost",
+            "127.0.0.1",
             "onsdb",
             "root",
             "",

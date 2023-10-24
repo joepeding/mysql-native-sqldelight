@@ -17,7 +17,7 @@ class MinimalTest {
     @BeforeTest // @BeforeClass not supported
     fun setup() {
         driver = MySQLNativeDriver(
-            "localhost",
+            "127.0.0.1",
             "onsdb",
             "root",
             "",
@@ -350,7 +350,7 @@ class MinimalTest {
             val mysequel = mysql_init(null)
             val mysqlconnected = mysql_real_connect(
                 mysequel,
-                "localhost",
+                "127.0.0.1",
                 "root",
                 "",
                 "onsdb",
