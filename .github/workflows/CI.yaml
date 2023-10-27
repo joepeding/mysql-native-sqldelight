@@ -16,7 +16,7 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest' ]
+        os: [ 'windows-latest', 'ubuntu-latest', 'macos-latest' ]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,13 @@ jobs:
           sudo systemctl start mysql.service
           mysqladmin -u root -proot password ''
 
+      - name: Check out Windows filesystem
+        if: runner.os == 'Windows'
+        run: |
+          cd "$Env:Programfiles\MySQL"
+          Get-ChildItem -Recurse
+          cd "$Env:Programfiles\OpenSSL"
+          Get-ChildItem -Recurse
       - name: Set up buildx
         if: runner.os == 'Linux'
         id: buildx
@@ -74,7 +81,7 @@ jobs:
           docker rm -v $id
 
       - name: Set up Homebrew
-        if: runner.os != 'Linux'
+        if: runner.os == 'macOS'
         uses: Homebrew/actions/setup-homebrew@master
         id: set-up-homebrew
 
@@ -83,7 +90,11 @@ jobs:
           brew install mysql@8.1
           brew install openssl@3.1
           mysql.server start
-        if: runner.os != 'Linux'
+        if: runner.os == 'macOS'
+
+      - name: Start pre-installed MySQL on Windows
+        run: |
+          start "$Env:Programfiles\MySQL\MySQL Server 8.0\bin\mysqld.exe"
 
       - name: Set up Java 17
         uses: actions/setup-java@v3
@@ -97,8 +108,17 @@ jobs:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
 
+      - name: Download newer MySQL
+        if: runner.os == 'Windows'
+        run: |
+          cd "$Env:Programfiles\MySQL"
+          Invoke-WebRequest -Uri "https://cdn.mysql.com//Downloads/MySQL-8.2/mysql-8.2.0-winx64.zip" -OutFile mysql.zip
+          Expand-Archive -Path mysql.zip
+          Get-ChildItem -Recurse
+
       - name: Create database for test use
         run: mysql -uroot -e 'CREATE DATABASE onsdb;'
+        if: runner.os != 'Windows'
 
       - name: Run tests
         run: ./gradlew allTests

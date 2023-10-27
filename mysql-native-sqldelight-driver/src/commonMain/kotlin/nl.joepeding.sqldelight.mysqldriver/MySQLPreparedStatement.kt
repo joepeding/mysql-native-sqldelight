@@ -21,7 +21,7 @@ public class MySQLPreparedStatement(
             buffer = boolean?.let {
                 memScope.alloc<BooleanVarOf<Boolean>>().apply { value = boolean }.ptr
             }
-            buffer_length = sizeOf<BooleanVar>().toULong()
+            buffer_length = sizeOf<BooleanVar>().convert()
             is_null = memScope.alloc<BooleanVar>().apply { value = (boolean == null) }.ptr
         }
     }
@@ -32,7 +32,7 @@ public class MySQLPreparedStatement(
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_BLOB
             buffer = cRepresentation?.getPointer(memScope)
-            buffer_length = cRepresentation?.size?.toULong() ?: 0.toULong()
+            buffer_length = cRepresentation?.size?.convert() ?: 0.convert()
             is_null = memScope.alloc<BooleanVar>().apply { value = (bytes == null) }.ptr
         }
     }
@@ -44,7 +44,7 @@ public class MySQLPreparedStatement(
             buffer = double?.let {
                 memScope.alloc<DoubleVar>().apply { value = double }.ptr
             }
-            buffer_length = sizeOf<DoubleVar>().toULong()
+            buffer_length = sizeOf<DoubleVar>().convert()
             is_null = memScope.alloc<BooleanVar>().apply { value = (double == null) }.ptr
         }
     }
@@ -56,7 +56,7 @@ public class MySQLPreparedStatement(
             buffer = long?.let {
                 memScope.alloc<LongVarOf<Long>>().apply { value = long }.ptr
             }
-            buffer_length = sizeOf<LongVarOf<Long>>().toULong()
+            buffer_length = sizeOf<LongVarOf<Long>>().convert()
             is_null = memScope.alloc<BooleanVar>().apply { value = (long == null) }.ptr
         }
     }
@@ -66,7 +66,7 @@ public class MySQLPreparedStatement(
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_STRING
             buffer = string?.cstr?.getPointer(memScope)
-            buffer_length = (string?.length ?: 0).toULong()
+            buffer_length = (string?.length ?: 0).convert()
             is_null = memScope.alloc<BooleanVar>().apply { value = (string == null) }.ptr
         }
     }
@@ -82,7 +82,7 @@ public class MySQLPreparedStatement(
                 it.month = date.monthNumber.toUInt()
                 it.day = date.dayOfMonth.toUInt()
             }.ptr
-            buffer_length = sizeOf<MYSQL_TIME>().toULong()
+            buffer_length = sizeOf<MYSQL_TIME>().convert()
 
         }
     }
@@ -103,9 +103,9 @@ public class MySQLPreparedStatement(
                 it.hour = dateTime.hour.toUInt()
                 it.minute = dateTime.minute.toUInt()
                 it.second = dateTime.second.toUInt()
-                it.second_part = (dateTime.nanosecond / 1000).toULong()
+                it.second_part = (dateTime.nanosecond / 1000).convert()
             }.ptr
-            buffer_length = sizeOf<MYSQL_TIME>().toULong()
+            buffer_length = sizeOf<MYSQL_TIME>().convert()
         }
     }
 
@@ -121,10 +121,10 @@ public class MySQLPreparedStatement(
                     it.hour = h.toUInt()
                     it.minute = m.toUInt()
                     it.second = s.toUInt()
-                    it.second_part = (ns / 1000).toULong()
+                    it.second_part = (ns / 1000).convert()
                 }
             }.ptr
-            buffer_length = sizeOf<MYSQL_TIME>().toULong()
+            buffer_length = sizeOf<MYSQL_TIME>().convert()
         }
     }
 
@@ -136,7 +136,7 @@ public class MySQLPreparedStatement(
     companion object {
         fun prepareStatement(conn: CPointer<MYSQL>, sql: String): CPointer<MYSQL_STMT> {
             val stmt = mysql_stmt_init(conn) ?: throw OutOfMemoryError("Failed to initialize statement, out of memory")
-            val result = mysql_stmt_prepare(stmt, sql, sql.length.toULong())
+            val result = mysql_stmt_prepare(stmt, sql, sql.length.convert())
 
             require(result == 0) { "Error preparing statement: ${stmt.error()}" }
 
