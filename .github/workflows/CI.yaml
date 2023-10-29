@@ -30,10 +30,10 @@ jobs:
       - name: Check out Windows filesystem
         if: runner.os == 'Windows'
         run: |
-          cd "$Env:Programfiles\MySQL"
-          Get-ChildItem -Recurse
-          cd "$Env:Programfiles\OpenSSL"
-          Get-ChildItem -Recurse
+          cd "$Env:Programfiles\Microsoft Visual Studio\2022\Enterprise\VC"
+          cd "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.16.27023\lib\x64\"
+          gci
+#          Get-ChildItem -Recurse "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.16.27023"
       - name: Set up buildx
         if: runner.os == 'Linux'
         id: buildx
