@@ -16,9 +16,7 @@ class MySQLCursor(
 ) : SqlCursor {
     private val memScope: Arena = Arena()
     private val buffers: MutableList<CVariable> = mutableListOf()
-    private var bindings: CArrayPointer<MYSQL_BIND>
-    private var lengths: CArrayPointer<CPointerVar<ULongVar>>
-    private var nulls: CArrayPointer<CPointerVar<BooleanVar>>
+    private var binder: Binder
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
@@ -35,25 +33,15 @@ class MySQLCursor(
         require(mysql_stmt_store_result(stmt) == 0) { "Error storing MySQL result: ${ stmt.error() }"}
 
         // Create bindings
-        bindings = memScope.allocArray(fieldCount)
-        lengths = memScope.allocArray(fieldCount)
-        nulls = memScope.allocArray(fieldCount)
+        binder = Binder(memScope, fieldCount)
         (0 until fieldCount).forEach { index ->
             val field = mysql_fetch_field(meta)?.pointed ?: throw IndexOutOfBoundsException(
                 "Did not find MYSQL_FIELD where one was expected."
             )
             val buffer = bufferForField(field).also { buffers.add(it) }
-            val length = memScope.alloc<ULongVar>().ptr.also { lengths[index] = it }
-            val isNull = memScope.alloc<BooleanVar>().ptr.also { nulls[index] = it }
-            bindings[index].apply {
-                this.buffer_type = field.type
-                this.buffer = buffer.ptr
-                this.buffer_length = field.max_length
-                this.length = length
-                this.is_null = isNull
-            }
+            binder.bind(index, field, buffer)
         }
-        mysql_stmt_bind_result(stmt, bindings)
+        mysql_stmt_bind_result(stmt, binder.getBindings())
     }
 
     private fun bufferForField(field: MYSQL_FIELD) = when (field.type) {
@@ -98,7 +86,7 @@ class MySQLCursor(
     override fun getBytes(index: Int): ByteArray? {
         val bytes = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
             ?.pointed
-            ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
+            ?.readValues<ByteVar>(binder.getLength(index), alignOf<ByteVar>())
             ?.getBytes()
         println("Fetch bytes (null=${isNullByIndex(index)}): ${bytes?.joinToString(" ") { it.toString(16) }}")
         if (isNullByIndex(index)) { return null }
@@ -118,7 +106,7 @@ class MySQLCursor(
     }
 
     override fun getString(index: Int): String? {
-        val string: String? = when (bindings[index].buffer_type) {
+        val string: String? = when (binder.get(index).buffer_type) {
             MYSQL_TYPE_DATE -> getDate(index)?.toString()
             MYSQL_TYPE_TIME,
             MYSQL_TYPE_TIME2 -> getDuration(index)?.toIsoString()
@@ -128,7 +116,7 @@ class MySQLCursor(
             MYSQL_TYPE_TIMESTAMP2 -> getDateTime(index)?.toString()
             else -> interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
                 ?.pointed
-                ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
+                ?.readValues<ByteVar>(binder.getLength(index), alignOf<ByteVar>())
                 ?.getBytes()
                 ?.also { println(it.joinToString(" ") { it.toString(radix = 16) }) }
                 ?.joinToString("") { Char(it.toInt()).toString() }
@@ -179,7 +167,7 @@ class MySQLCursor(
         }
     }.let { Value(it) }
 
-    private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
+    private fun isNullByIndex(index: Int): Boolean = binder.isNull(index)
 
     fun clear(): Unit {
         println("Clearing")

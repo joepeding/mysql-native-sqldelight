@@ -31,12 +31,14 @@ kotlin {
         }
     }
 
+    println("HOSTMANAGER: ${HostManager.host}")
     when (HostManager.host) {
         KonanTarget.LINUX_X64 -> linuxX64 { registerCinterop() }
         KonanTarget.LINUX_ARM64 -> linuxArm64 { registerCinterop() }
         KonanTarget.MACOS_ARM64 -> macosArm64 { registerCinterop() }
         KonanTarget.MACOS_X64 -> macosX64 { registerCinterop() }
-        else -> error("Not supported")
+        KonanTarget.MINGW_X64 -> mingwX64 { registerCinterop() }
+        else -> error("Host OS not supported")
     }
 
     sourceSets {

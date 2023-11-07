@@ -27,7 +27,8 @@ kotlin {
         KonanTarget.LINUX_ARM64 -> linuxArm64()
         KonanTarget.MACOS_ARM64 -> macosArm64()
         KonanTarget.MACOS_X64 -> macosX64()
-        else -> error("Not supported")
+        KonanTarget.MINGW_X64 -> mingwX64 { }
+        else -> error("Host OS not supported")
     }
 
     sourceSets {
