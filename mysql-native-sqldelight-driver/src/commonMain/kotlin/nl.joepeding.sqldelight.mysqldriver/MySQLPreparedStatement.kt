@@ -1,6 +1,7 @@
 package nl.joepeding.sqldelight.mysqldriver
 
 import app.cash.sqldelight.db.SqlPreparedStatement
+import co.touchlab.kermit.*
 import kotlinx.cinterop.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -12,10 +13,14 @@ public class MySQLPreparedStatement(
     private val parameters: Int
 ): SqlPreparedStatement {
     private val memScope: Arena = Arena()
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
     public val bindings = memScope.allocArray<MYSQL_BIND>(parameters)
 
     override fun bindBoolean(index: Int, boolean: Boolean?) {
-        println("Binding boolean")
+        log.d { "Binding boolean" }
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_SHORT
             buffer = boolean?.let {
@@ -27,7 +32,7 @@ public class MySQLPreparedStatement(
     }
 
     override fun bindBytes(index: Int, bytes: ByteArray?) {
-        println("Binding bytes")
+        log.d { "Binding bytes" }
         val cRepresentation = bytes?.toCValues()
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_BLOB
@@ -38,7 +43,7 @@ public class MySQLPreparedStatement(
     }
 
     override fun bindDouble(index: Int, double: Double?) {
-        println("Binding double")
+        log.d { "Binding double" }
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_DOUBLE
             buffer = double?.let {
@@ -50,7 +55,7 @@ public class MySQLPreparedStatement(
     }
 
     override fun bindLong(index: Int, long: Long?) {
-        println("Binding long")
+        log.d { "Binding long" }
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_LONGLONG
             buffer = long?.let {
@@ -62,7 +67,7 @@ public class MySQLPreparedStatement(
     }
 
     override fun bindString(index: Int, string: String?) {
-        println("Binding string")
+        log.d { "Binding string" }
         bindings[index].apply {
             buffer_type = MYSQL_TYPE_STRING
             buffer = string?.cstr?.getPointer(memScope)
@@ -72,7 +77,7 @@ public class MySQLPreparedStatement(
     }
 
     fun bindDate(index: Int, date: LocalDate?) {
-        println("Binding date")
+        log.d { "Binding date" }
         bindings[index].apply {
             is_null = memScope.alloc<BooleanVar>().apply { value = (date == null) }.ptr
             if (date == null) { return }
@@ -91,7 +96,7 @@ public class MySQLPreparedStatement(
     // TODO: Time zones
     // TODO: Partial seconds
     fun bindDateTime(index: Int, dateTime: LocalDateTime?) {
-        println("Binding date")
+        log.d { "Binding date" }
         bindings[index].apply {
             is_null = memScope.alloc<BooleanVar>().apply { value = (dateTime == null) }.ptr
             if (dateTime == null) { return }
@@ -111,7 +116,7 @@ public class MySQLPreparedStatement(
 
     // TODO: Test (esp with durations of > 24 hours and negative durations)
     fun bindDuration(index: Int, duration: Duration?) {
-        println("Binding date")
+        log.d { "Binding date" }
         bindings[index].apply {
             is_null = memScope.alloc<BooleanVar>().apply { value = (duration == null) }.ptr
             if (duration == null) { return }
@@ -129,8 +134,9 @@ public class MySQLPreparedStatement(
     }
 
     public fun clear() {
-        println("Clearing")
+        log.d { "Clearing" }
         memScope.clear()
+        log.d { "Cleared" }
     }
 
     companion object {
