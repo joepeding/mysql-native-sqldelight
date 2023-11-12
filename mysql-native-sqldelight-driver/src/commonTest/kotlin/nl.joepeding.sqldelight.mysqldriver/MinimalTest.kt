@@ -244,7 +244,7 @@ class MinimalTest {
         assertEquals(1L, readWithinTransaction.value.first())
 
         // Rollback transaction
-        (transaction as MySQLNativeDriver.Transaction).rollback()
+        driver.rollback()
 
         // Read row after rollback
         val readAfterTransaction = driver.executeQuery(
