@@ -7,6 +7,10 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import app.cash.sqldelight.db.SqlSchema
+import co.touchlab.kermit.CommonWriter
+import co.touchlab.kermit.DefaultFormatter
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.value
 import kotlin.test.AfterTest
@@ -30,6 +34,10 @@ import kotlin.test.assertTrue
  *       the `execute` function on the `SqlDriver` should return the number of affected rows already.
  */
 abstract class DriverTest {
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
     protected lateinit var driver: SqlDriver
     protected val schema = object : SqlSchema<QueryResult.Value<Unit>> {
         override val version: Long = 1
@@ -104,26 +112,26 @@ abstract class DriverTest {
             driver.executeQuery(3, "SELECT * FROM test", mapper, 0)
         }
 
-        println("------ QUERY #1 ------")
+        log.i { "------ QUERY #1 ------" }
         query {
             assertFalse(it.next().value)
             QueryResult.Unit
         }
 
-        println("------ INSERT #1 ------")
+        log.i { "------ INSERT #1 ------" }
         insert {
             bindLong(0, 1)
             bindString(1, "Alec")
         }.let { assertEquals(1L, it.value) }
 
-        println("------ QUERY #2 ------")
+        log.i { "------ QUERY #2 ------" }
         query {
             assertTrue(it.next().value)
             assertFalse(it.next().value)
             QueryResult.Unit
         }
 
-        println("------ QUERY #3 ------")
+        log.i { "------ QUERY #3 ------" }
         query {
             assertTrue(it.next().value)
             assertEquals(1, it.getLong(0))
@@ -131,13 +139,13 @@ abstract class DriverTest {
             QueryResult.Unit
         }
 
-        println("------ INSERT #2 ------")
+        log.i { "------ INSERT #2 ------" }
         insert {
             bindLong(0, 2)
             bindString(1, "Jake")
         }.let { assertEquals(1L, it.value) }
 
-        println("------ QUERY #4 ------")
+        log.i { "------ QUERY #4 ------" }
         query {
             assertTrue(it.next().value)
             assertEquals(1, it.getLong(0))

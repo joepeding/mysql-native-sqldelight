@@ -1,5 +1,9 @@
 package nl.joepeding.sqldelight.mysqldriver
 
+import co.touchlab.kermit.CommonWriter
+import co.touchlab.kermit.DefaultFormatter
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -14,6 +18,10 @@ import kotlin.time.toDuration
 
 class MySQLNativeSqlDelightDriverTest {
     private lateinit var driver: MySQLNativeDriver
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
 
     @BeforeTest // @BeforeClass not supported
     fun setup() {
@@ -34,11 +42,11 @@ class MySQLNativeSqlDelightDriverTest {
         try {
             assertEquals(emptyList(), queries.get().executeAsList())
         } catch (e: Throwable) {
-            println(e.message)
+            log.e(e) { "Test failed" }
             throw e
         }
 
-        println("Migrations?")
+        log.i { "Migrations?" }
         val foo = Foo(
             a = 42,
             b = "Foo-" + randomString(),
@@ -47,7 +55,7 @@ class MySQLNativeSqlDelightDriverTest {
             timestamp = LocalDateTime(2014, Month.AUGUST, 1, 12, 1, 2, 0),
         )
 
-        println("Creating Foo")
+        log.i { "Creating Foo" }
         queries.create(
             a = foo.a,
             b = foo.b,
@@ -55,7 +63,7 @@ class MySQLNativeSqlDelightDriverTest {
             time = foo.time,
             timestamp = foo.timestamp,
         )
-        println("Created Foo")
+        log.i { "Created Foo" }
 
         assertEquals(foo, queries.get().executeAsOne())
     }
