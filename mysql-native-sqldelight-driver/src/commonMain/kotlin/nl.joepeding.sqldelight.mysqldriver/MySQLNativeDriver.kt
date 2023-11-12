@@ -6,6 +6,10 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
+import co.touchlab.kermit.CommonWriter
+import co.touchlab.kermit.DefaultFormatter
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import kotlinx.cinterop.*
 import mysql.*
 
@@ -15,7 +19,11 @@ class MySQLNativeDriver(
     private val statementCache = mutableMapOf<Int, CPointer<MYSQL_STMT>>()
     private var transaction: Transaction? = null
     private val listeners = mutableMapOf<String, MutableSet<Query.Listener>>()
-    
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
+
     override fun execute(
         identifier: Int?,
         sql: String,
@@ -40,7 +48,7 @@ class MySQLNativeDriver(
         bindings?.clear()
 
         // Check error
-        require(!statement.hasError()) { statement.error().also { println(it) } }
+        require(!statement.hasError()) { statement.error().also { log.e { it } } }
 
         // Return dummy query result
         return QueryResult.Value(mysql_stmt_affected_rows(statement).toLong())
@@ -71,7 +79,7 @@ class MySQLNativeDriver(
         bindings?.clear()
 
         // Check error
-        require(!statement.hasError()) { statement.error().also { println(it) } }
+        require(!statement.hasError()) { statement.error().also { log.e { it } } }
 
         return mapper(MySQLCursor(statement))
     }
@@ -83,7 +91,7 @@ class MySQLNativeDriver(
         if (transaction != null) {
             // TODO: 1. Replace with warning level logger
             // TODO: 2. Consider the user of SAVEPOINT statements to mimic nested transactions?
-            println("Warning: MySQL does not support nested transaction. Outer transaction is automatically committed.")
+            log.w { "MySQL does not support nested transaction. Outer transaction is automatically committed." }
         }
         mysql_query(conn, "START TRANSACTION") // TODO: Check success
         transaction = Transaction(transaction)
@@ -103,14 +111,14 @@ class MySQLNativeDriver(
         }
 
         fun commit(): QueryResult.Value<Unit> {
-            println("COMMIT")
+            log.d { "COMMIT" }
             if(mysql_commit(conn)) { error(conn.error()) }
             transaction = enclosingTransaction
             return QueryResult.Unit
         }
 
         fun rollback(): QueryResult.Value<Unit> {
-            println("ROLLBACK")
+            log.d { "ROLLBACK" }
             if(mysql_rollback(conn)) { error(conn.error()) }
             transaction = enclosingTransaction
             return QueryResult.Unit

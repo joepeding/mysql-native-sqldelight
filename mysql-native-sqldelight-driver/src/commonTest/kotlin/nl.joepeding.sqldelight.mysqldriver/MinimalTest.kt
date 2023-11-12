@@ -1,6 +1,10 @@
 package nl.joepeding.sqldelight.mysqldriver
 
 import app.cash.sqldelight.db.QueryResult.Value
+import co.touchlab.kermit.CommonWriter
+import co.touchlab.kermit.DefaultFormatter
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import kotlinx.cinterop.*
 import mysql.*
 import kotlin.random.Random
@@ -14,6 +18,10 @@ class MinimalTest {
     private final val DOUBLE_FIELD = "doublefield"
     private final val LONG_FIELD = "longfield"
     private lateinit var driver: MySQLNativeDriver
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
     @BeforeTest // @BeforeClass not supported
     fun setup() {
         driver = MySQLNativeDriver(
@@ -93,7 +101,7 @@ class MinimalTest {
             bindString(5, "firstString")
         }
         assertEquals(1L, insert.value, "First insert failed")
-        println("Insert1")
+        log.i { "Insert1" }
 
         insert = driver.execute(
             null,
@@ -115,7 +123,7 @@ class MinimalTest {
             bindString(5, "secondString")
         }
         assertEquals(1L, insert.value, "Second insert failed")
-        println("Insert2")
+        log.i {"Insert2" }
 
         insert = driver.execute(
             null,
@@ -137,7 +145,7 @@ class MinimalTest {
             bindString(5, null)
         }
         assertEquals(1L, insert.value, "Third insert failed")
-        println("Insert3")
+        log.i { "Insert3" }
 
         // Fetch
         val result = driver.executeQuery(
@@ -181,7 +189,7 @@ class MinimalTest {
             assertEquals(1, result.value.count { it.varchar == "secondString" }, "Second string doesn't match")
             assertEquals(1, result.value.count { it.varchar == null }, "First string doesn't match")
         } catch (e: Throwable) {
-            println(e.message)
+            log.e(e) { "Exception checking values" }
             throw e
         }
     }
