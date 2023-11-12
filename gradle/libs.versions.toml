@@ -5,6 +5,7 @@ datetime = "0.4.1"
 coroutines = "1.7.3"
 grammarkit = "0.1.12"
 stately = "2.0.5"
+kermit = "2.0.2"
 
 [libraries]
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
@@ -19,6 +20,7 @@ sqldelight-driver-test = { module = "app.cash.sqldelight:driver-test", version.r
 stately-core = { module = "co.touchlab:stately-common", version.ref = "stately" }
 stately-concurrency = { module = "co.touchlab:stately-concurrency", version.ref = "stately" }
 stately-collections = { module = "co.touchlab:stately-collections", version.ref = "stately" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

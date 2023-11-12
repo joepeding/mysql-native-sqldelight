@@ -3,6 +3,10 @@ package nl.joepeding.sqldelight.mysqldriver
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.QueryResult.Value
 import app.cash.sqldelight.db.SqlCursor
+import co.touchlab.kermit.CommonWriter
+import co.touchlab.kermit.DefaultFormatter
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.loggerConfigInit
 import kotlinx.cinterop.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -19,6 +23,10 @@ class MySQLCursor(
     private var bindings: CArrayPointer<MYSQL_BIND>
     private var lengths: CArrayPointer<CPointerVar<ULongVar>>
     private var nulls: CArrayPointer<CPointerVar<BooleanVar>>
+    private val log = Logger(
+        loggerConfigInit(CommonWriter(DefaultFormatter)),
+        this::class.qualifiedName ?: this::class.toString()
+    )
 
     init {
         val meta = mysql_stmt_result_metadata(stmt)
@@ -90,7 +98,7 @@ class MySQLCursor(
     }
 
     override fun getBoolean(index: Int): Boolean? {
-        println("Fetch bool (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<ByteVar>().value}")
+        log.d { "Fetch bool (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<ByteVar>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<ByteVar>().value != 0.toUInt().toByte()
     }
@@ -100,19 +108,19 @@ class MySQLCursor(
             ?.pointed
             ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
             ?.getBytes()
-        println("Fetch bytes (null=${isNullByIndex(index)}): ${bytes?.joinToString(" ") { it.toString(16) }}")
+        log.d { "Fetch bytes (null=${isNullByIndex(index)}): ${bytes?.joinToString(" ") { it.toString(16) }}" }
         if (isNullByIndex(index)) { return null }
         return bytes
     }
 
     override fun getDouble(index: Int): Double? {
-        println("Fetch double (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<DoubleVar>().value}")
+        log.d { "Fetch double (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<DoubleVar>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<DoubleVar>().value
     }
 
     override fun getLong(index: Int): Long? {
-        println("Fetch long (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<LongVarOf<Long>>().value}")
+        log.d { "Fetch long (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<LongVarOf<Long>>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<LongVar>().value
     }
@@ -130,10 +138,10 @@ class MySQLCursor(
                 ?.pointed
                 ?.readValues<ByteVar>(lengths[index]!!.pointed.value.toInt(), alignOf<ByteVar>())
                 ?.getBytes()
-                ?.also { println(it.joinToString(" ") { it.toString(radix = 16) }) }
+                ?.also { log.d { it.joinToString(" ") { it.toString(radix = 16) } } }
                 ?.joinToString("") { Char(it.toInt()).toString() }
         }
-        println("Fetch string (null=${isNullByIndex(index)}): $string (${string?.length} chars)")
+        log.d { "Fetch string (null=${isNullByIndex(index)}): $string (${string?.length} chars)" }
         if (isNullByIndex(index)) { return null }
         return string
     }
@@ -169,7 +177,7 @@ class MySQLCursor(
     }
 
     override fun next(): QueryResult<Boolean> = mysql_stmt_fetch(stmt).let {
-        println("Next row")
+        log.d { "Next row" }
         return@let when (it) {
             0 -> true
             MYSQL_NO_DATA -> false
@@ -182,8 +190,8 @@ class MySQLCursor(
     private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
 
     fun clear(): Unit {
-        println("Clearing")
+        log.d { "Clearing" }
         memScope.clear()
-        println("Clearing done")
+        log.d { "Clearing done" }
     }
 }
