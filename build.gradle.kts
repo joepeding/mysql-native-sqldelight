@@ -1,4 +1,4 @@
-group = "nl.joepeding"
+group = "nl.joepeding.sqldelight"
 version = "0.1.0-SNAPSHOT"
 
 plugins {
