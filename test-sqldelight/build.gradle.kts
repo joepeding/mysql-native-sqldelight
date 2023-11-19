@@ -1,6 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 
@@ -33,7 +32,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(projects.mysqlNativeSqldelightDriver)
+                implementation(projects.mysqlNativeDriver)
             }
         }
         commonTest {
@@ -48,7 +47,7 @@ kotlin {
 
 sqldelight {
     databases.register("NativeMySQL") {
-        dialect(projects.mysqlNativeSqldelightDialect)
+        dialect(projects.mysqlNativeDialect)
         packageName.set("nl.joepeding.sqldelight.testmysql")
         deriveSchemaFromMigrations.set(true)
     }
