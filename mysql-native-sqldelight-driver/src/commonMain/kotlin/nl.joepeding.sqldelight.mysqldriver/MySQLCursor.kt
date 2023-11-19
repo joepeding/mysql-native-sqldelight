@@ -15,8 +15,17 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+/**
+ * MySQL cursor used to iterate over rows in the result and extract
+ * fields as typed variables.
+ *
+ * Intended to be used through [MySQLNativeDriver] along with a mapper that converts the complete
+ * result into some collection.
+ *
+ * @param stmt `CPointer` to a `MYSQL_STMT` that has been executed and has no errors
+ */
 class MySQLCursor(
-    val stmt: CPointer<MYSQL_STMT>
+    private val stmt: CPointer<MYSQL_STMT>
 ) : SqlCursor {
     private val memScope: Arena = Arena()
     private val buffers: MutableList<CVariable> = mutableListOf()
@@ -97,12 +106,26 @@ class MySQLCursor(
         else -> { error("Encountered unknown field type: ${field.type}") }
     }
 
+    /**
+     * Converts the buffer for provided column index to a Boolean?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     override fun getBoolean(index: Int): Boolean? {
         log.d { "Fetch bool (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<ByteVar>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<ByteVar>().value != 0.toUInt().toByte()
     }
 
+    /**
+     * Converts the buffer for provided column index to a ByteArray?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     override fun getBytes(index: Int): ByteArray? {
         val bytes = interpretCPointer<CArrayPointerVar<ByteVar>>(buffers[index].rawPtr)
             ?.pointed
@@ -113,18 +136,44 @@ class MySQLCursor(
         return bytes
     }
 
+    /**
+     * Converts the buffer for provided column index to a Double?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     override fun getDouble(index: Int): Double? {
         log.d { "Fetch double (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<DoubleVar>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<DoubleVar>().value
     }
 
+    /**
+     * Converts the buffer for provided column index to a Long?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     override fun getLong(index: Int): Long? {
         log.d { "Fetch long (null=${isNullByIndex(index)}): ${buffers[index].reinterpret<LongVarOf<Long>>().value}" }
         if (isNullByIndex(index)) { return null }
         return buffers[index].reinterpret<LongVar>().value
     }
 
+    /**
+     * Converts the buffer for provided column index to a String?
+     *
+     * Returns null if that index was `NULL` in the result.
+     * Conversion of the result to `String` happens as follows:
+     * - For column with `DATE` type, delegates to [getDate], then converts to string
+     * - For column with `TIME`/`TIME2` type, delegates to [getDuration], then converts to String
+     * - For column with `DATETIME`/`TIMESTAMP`/`DATETIME2`/`TIMESTAMP2` type, delegates to [getDateTime], converts to String
+     * - Otherwise, delegates to [getBytes] and converts individual bytes to chars.
+     *
+     * @param index Integer index of the column to read
+     */
     override fun getString(index: Int): String? {
         val string: String? = when (bindings[index].buffer_type) {
             MYSQL_TYPE_DATE -> getDate(index)?.toString()
@@ -146,12 +195,26 @@ class MySQLCursor(
         return string
     }
 
+    /**
+     * Converts the buffer for provided column index to a kotlinx.datetime.LocalDate?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     fun getDate(index: Int): LocalDate? {
         if (isNullByIndex(index)) { return null }
         val date = buffers[index].reinterpret<MYSQL_TIME>()
         return LocalDate(date.year.toInt(), date.month.toInt(), date.day.toInt())
     }
 
+    /**
+     * Converts the buffer for provided column index to a kotlinx.datetime.LocalDateTime?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     fun getDateTime(index: Int): LocalDateTime? {
         if (isNullByIndex(index)) { return null }
         val datetime = buffers[index].reinterpret<MYSQL_TIME>()
@@ -167,6 +230,13 @@ class MySQLCursor(
         )
     }
 
+    /**
+     * Converts the buffer for provided column index to a kotlin.time.Duration?
+     *
+     * Returns null if that index was `NULL` in the result.
+     *
+     * @param index Integer index of the column to read
+     */
     fun getDuration(index: Int): Duration? {
         if (isNullByIndex(index)) { return null }
         val time = buffers[index].reinterpret<MYSQL_TIME>()
@@ -176,6 +246,15 @@ class MySQLCursor(
                 time.second_part.toString().padEnd(9, '0').toInt().toDuration(DurationUnit.NANOSECONDS)
     }
 
+    /**
+     * Move the cursor to the next row
+     *
+     * Returns a `QueryResult.Value` with `true` for success and `false` when there are no more rows.
+     *
+     * @param index Integer index of the column to read
+     * @throws Exception when data was truncated
+     * @throws IllegalStateException for unexpected return codes from `mysql_stmt_fetch`.
+     */
     override fun next(): QueryResult<Boolean> = mysql_stmt_fetch(stmt).let {
         log.d { "Next row" }
         return@let when (it) {
@@ -189,6 +268,9 @@ class MySQLCursor(
 
     private fun isNullByIndex(index: Int): Boolean = nulls[index]!!.reinterpret<ByteVar>().pointed.value == true.toByte()
 
+    /**
+     * Clears the internal `Arena` used holding references to memory allocated in C-interoperability.
+     */
     fun clear(): Unit {
         log.d { "Clearing" }
         memScope.clear()

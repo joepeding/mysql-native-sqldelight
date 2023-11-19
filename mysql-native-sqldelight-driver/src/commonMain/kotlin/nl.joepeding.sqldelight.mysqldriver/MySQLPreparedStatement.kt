@@ -8,6 +8,11 @@ import kotlinx.datetime.LocalDateTime
 import mysql.*
 import kotlin.time.Duration
 
+/**
+ * Represents a SQL statement that has been prepared by a driver to be executed.
+ *
+ * Should not be cached
+ */
 public class MySQLPreparedStatement(
     private val statement: CPointer<MYSQL_STMT>,
     private val parameters: Int
@@ -19,6 +24,9 @@ public class MySQLPreparedStatement(
     )
     public val bindings = memScope.allocArray<MYSQL_BIND>(parameters)
 
+    /**
+     * Bind [boolean] to the underlying statement at [index].
+     */
     override fun bindBoolean(index: Int, boolean: Boolean?) {
         log.d { "Binding boolean" }
         bindings[index].apply {
@@ -31,6 +39,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Bind [bytes] to the underlying statement at [index].
+     */
     override fun bindBytes(index: Int, bytes: ByteArray?) {
         log.d { "Binding bytes" }
         val cRepresentation = bytes?.toCValues()
@@ -42,6 +53,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Bind [double] to the underlying statement at [index].
+     */
     override fun bindDouble(index: Int, double: Double?) {
         log.d { "Binding double" }
         bindings[index].apply {
@@ -54,6 +68,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Bind [long] to the underlying statement at [index].
+     */
     override fun bindLong(index: Int, long: Long?) {
         log.d { "Binding long" }
         bindings[index].apply {
@@ -66,6 +83,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Bind [string] to the underlying statement at [index].
+     */
     override fun bindString(index: Int, string: String?) {
         log.d { "Binding string" }
         bindings[index].apply {
@@ -76,6 +96,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Bind [LocalDate] to the underlying statement at [index].
+     */
     fun bindDate(index: Int, date: LocalDate?) {
         log.d { "Binding date" }
         bindings[index].apply {
@@ -95,6 +118,9 @@ public class MySQLPreparedStatement(
     // TODO: Test
     // TODO: Time zones
     // TODO: Partial seconds
+    /**
+     * Bind [LocalDateTime] to the underlying statement at [index].
+     */
     fun bindDateTime(index: Int, dateTime: LocalDateTime?) {
         log.d { "Binding date" }
         bindings[index].apply {
@@ -115,6 +141,9 @@ public class MySQLPreparedStatement(
     }
 
     // TODO: Test (esp with durations of > 24 hours and negative durations)
+    /**
+     * Bind [Duration] to the underlying statement at [index].
+     */
     fun bindDuration(index: Int, duration: Duration?) {
         log.d { "Binding date" }
         bindings[index].apply {
@@ -133,6 +162,9 @@ public class MySQLPreparedStatement(
         }
     }
 
+    /**
+     * Clear's the internal Arena used for keeping track of memory allocated for C-interoperability
+     */
     public fun clear() {
         log.d { "Clearing" }
         memScope.clear()
@@ -140,6 +172,17 @@ public class MySQLPreparedStatement(
     }
 
     companion object {
+        /**
+         * Accepts a MySQL connection and query string to prepare a statement.
+         *
+         * The result can be used to construct a [MySQLPreparedStatement] and can be cached by [MySQLNativeDriver].
+         *
+         * @param conn MySQL connection
+         * @param sql Query string
+         * @return Pointer to a `MYSQL-STMT`
+         * @throws OutOfMemoryError if statement can not be initialized due to lack of memory (the only documented failure condition)
+         * @throws IllegalArgumentException if the statement can not be prepared
+         */
         fun prepareStatement(conn: CPointer<MYSQL>, sql: String): CPointer<MYSQL_STMT> {
             val stmt = mysql_stmt_init(conn) ?: throw OutOfMemoryError("Failed to initialize statement, out of memory")
             val result = mysql_stmt_prepare(stmt, sql, sql.length.toULong())
