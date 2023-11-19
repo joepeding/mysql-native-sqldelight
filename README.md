@@ -9,6 +9,7 @@ You can use the driver with SQLDelight, but this is not required.
 
 - [Caveats](#Caveats)
 - [Testing](#Testing)
+- [Documentation](#Documentation)
 - [Licensing](#Licensing)
 
 </details>
@@ -22,6 +23,13 @@ You can use the driver with SQLDelight, but this is not required.
 ```shell
 ./gradlew clean allTests --info
 ```
+
+## Documentation
+Run the following command to generate HTML documentation from KDoc:
+```shell
+./gradlew clean dokkaHtmlMultiModule
+```
+Then open `build/dokka/htmlMultiModule/index.html` to browse the generated documentation 
 
 ## Licensing
 The code written in this repository is released under the Apache License 2.0. Of note:
