@@ -6,6 +6,7 @@ coroutines = "1.7.3"
 grammarkit = "0.1.12"
 stately = "2.0.5"
 kermit = "2.0.2"
+dokka = "1.9.10"
 
 [libraries]
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
@@ -27,3 +28,4 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 grammarKitComposer = { id = "com.alecstrong.grammar.kit.composer", version.ref = "grammarkit" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

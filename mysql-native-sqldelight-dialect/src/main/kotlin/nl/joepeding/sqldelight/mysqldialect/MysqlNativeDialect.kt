@@ -7,6 +7,12 @@ import app.cash.sqldelight.dialects.mysql.grammar.psi.MySqlTypeName
 import com.alecstrong.sql.psi.core.psi.*
 import com.squareup.kotlinpoet.*
 
+/**
+ * Native-specific subclass of SQLDelight's MySQLDialect in order to register native-compatible `TypeResolver`
+ *
+ * SQLDelight's own MySQLDialect uses a MySqlType that uses `java.time` and `java.math`, making it dependent
+ * on JVM.
+ */
 class MysqlNativeDialect : SqlDelightDialect by MySqlDialect() {
     override val runtimeTypes: RuntimeTypes = RuntimeTypes(
         ClassName("nl.joepeding.sqldelight.mysqldriver", "MySQLCursor"),

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply true
     alias(libs.plugins.grammarKitComposer) apply true
+    alias(libs.plugins.dokka) apply true
 }
 
 dependencies {
