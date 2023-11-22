@@ -1,0 +1,77 @@
+{
+  "branches": ["main"],
+  "tagFormat": "${version}",
+  "plugins": [
+    ["@semantic-release/commit-analyzer", {
+      "preset": "angular",
+      "parserOpts": {
+        "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
+      },
+      "releaseRules": [
+        {"type":  "build", "scope": "deps", "release": "patch"},
+        {"type": "refactor", "release": "patch"}
+      ]
+    }],
+    ["@semantic-release/release-notes-generator", {
+      "preset": "conventionalcommits",
+      "linkReferences": false,
+      "parserOpts": {
+        "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"],
+        "referenceActions": ["some string that is unlikely to occur to prevent spurious references, see: https://github.com/conventional-changelog/conventional-changelog/issues/415#issuecomment-881862836"],
+        "issuePrefixes": ["close #", "closes #", "closed #", "fix #", "fixes #", "fixed #", "resolve #", "resolves #", "resolved #"]
+      },
+      "presetConfig": {
+        "types": [
+          {
+            "type": "breaking",
+            "section": ":boom: Breaking",
+            "hidden": false
+          },
+          {
+            "type": "feat",
+            "section": ":sparkles: New features",
+            "hidden": false
+          },
+          {
+            "type": "fix",
+            "section": ":bug: Fixes",
+            "hidden": false
+          },
+          {
+            "type": "perf",
+            "section": ":racehorse: Performance",
+            "hidden": false
+          },
+          {
+            "type": "refactor",
+            "section": ":hammer: Refactor",
+            "hidden": false
+          },
+          {
+            "type": "test",
+            "section": ":white_check_mark: Refactor",
+            "hidden": false
+          },
+          {
+            "type": "docs",
+            "section": ":books: Documentation changes",
+            "hidden": false
+          },
+          {
+            "type": "ci",
+            "section": ":construction_worker: CI changes",
+            "hidden": false
+          },
+          {
+            "type": "build",
+            "section": ":arrow_up: Dependencies",
+            "hidden": false
+          }
+        ]
+      }
+    }],
+    ["@semantic-release/github", {
+      "successComment": false
+    }]
+  ]
+}
