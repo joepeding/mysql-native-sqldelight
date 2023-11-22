@@ -1,4 +1,5 @@
 group = "nl.joepeding.sqldelight"
+version = rootProject.file("version.properties").readText().trim()
 
 plugins {
     alias(libs.plugins.sqldelight) apply false

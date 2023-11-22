@@ -106,7 +106,9 @@ jobs:
       - name: Generate documentation
         # only on main, and only for one OS
         if: github.ref == 'refs/heads/main' && runner.os == 'Linux'
-        run: ./gradlew dokkaHtmlMultiModule
+        run: |
+          git describe --tags > version.properties
+          ./gradlew dokkaHtmlMultiModule
 
       - name: Publish documentation
         # only on main, and only for one OS
