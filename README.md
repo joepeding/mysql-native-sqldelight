@@ -25,7 +25,10 @@ You can use the driver with SQLDelight, but this is not required.
 ```
 
 ## Documentation
-Run the following command to generate HTML documentation from KDoc:
+[<img alt="Deployed with FTP Deploy Action" src="https://img.shields.io/badge/Deployed With-FTP DEPLOY ACTION-%3CCOLOR%3E?style=for-the-badge&color=0077b6">](https://github.com/SamKirkland/FTP-Deploy-Action)
+
+Documentation is automatically generated for the latest commit in `main` and published to [sqldelight.joepeding.nl](https://sqldelight.joepeding.nl/index.html).
+To manually generate the documentation, run the following command to generate HTML documentation from KDoc:
 ```shell
 ./gradlew clean dokkaHtmlMultiModule
 ```
