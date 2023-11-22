@@ -104,9 +104,13 @@ jobs:
         run: ./gradlew allTests
 
       - name: Generate documentation
+        # only on main, and only for one OS
+        if: github.ref == 'refs/heads/main' && runner.os == 'Linux'
         run: ./gradlew dokkaHtmlMultiModule
 
       - name: Publish documentation
+        # only on main, and only for one OS
+        if: github.ref == 'refs/heads/main' && runner.os == 'Linux'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.DOCUMENTATION_FTP_ADDRESS }}
