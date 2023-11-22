@@ -102,3 +102,14 @@ jobs:
 
       - name: Run tests
         run: ./gradlew allTests
+
+      - name: Generate documentation
+        run: ./gradlew dokkaHtmlMultiModule
+
+      - name: Publish documentation
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.DOCUMENTATION_FTP_ADDRESS }}
+          username: ${{ secrets.DOCUMENTATION_FTP_USERNAME }}
+          password: ${{ secrets.DOCUMENTATION_FTP_PASSWORD }}
+          local-dir: './build/dokka/htmlMultiModule/'
