@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.konan.target.HostManager
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply true
     alias(libs.plugins.dokka) apply true
+    `maven-publish` apply true
+    signing apply true
 }
 
 tasks.withType(AbstractTestTask::class.java).configureEach {

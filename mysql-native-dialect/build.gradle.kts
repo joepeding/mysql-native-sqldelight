@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply true
     alias(libs.plugins.grammarKitComposer) apply true
     alias(libs.plugins.dokka) apply true
+    alias(libs.plugins.publish) apply true
 }
 
 dependencies {
@@ -11,6 +12,13 @@ dependencies {
     compileOnly(libs.sqldelight.compiler.env)
 }
 
+
+
 kotlin {
     jvmToolchain(17)
 }
+
+mavenPublishing {
+    coordinates(rootProject.group.toString(), project.name, rootProject.version.toString())
+}
+

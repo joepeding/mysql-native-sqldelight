@@ -7,6 +7,7 @@ grammarkit = "0.1.12"
 stately = "2.0.7"
 kermit = "2.0.3"
 dokka = "1.9.20"
+publish = "0.25.3"
 
 [libraries]
 kotlin-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime"}
@@ -29,3 +30,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 grammarKitComposer = { id = "com.alecstrong.grammar.kit.composer", version.ref = "grammarkit" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
