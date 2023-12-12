@@ -12,9 +12,6 @@ jobs:
     permissions:
       contents: write
     strategy:
-      # Only 1 parallel job with fail-fast, so if Ubuntu fails the more expensive macOS job is skipped.
-      max-parallel: 1
-      fail-fast: true
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
 
@@ -83,9 +80,12 @@ jobs:
 
       - name: Install MySQL 8.1, OpenSSL 3.1 and start MySQL
         run: |
-          brew install mysql@8.1
+          export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+          brew search mysql@8.1
+          brew search openssl@3.1
+          brew install --force mysql@8.1
           brew install openssl@3.1
-          mysql.server start
+          brew services start mysql@8.1
         if: runner.os != 'Linux'
 
       - name: Set up Java 17
