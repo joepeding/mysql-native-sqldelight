@@ -82,7 +82,7 @@ jobs:
         run: |
           export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
           rm -rf $(brew --repo homebrew/core)
-          brew tap homebrew/core
+          brew tap homebrew/core --force
           brew update
           brew search mysql@8.1
           brew search openssl@3.1
