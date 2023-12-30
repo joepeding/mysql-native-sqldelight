@@ -81,6 +81,8 @@ jobs:
       - name: Install MySQL 8.1, OpenSSL 3.1 and start MySQL
         run: |
           export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+          brew tap homebrew/core
+          brew update
           brew search mysql@8.1
           brew search openssl@3.1
           brew install --force mysql@8.1
