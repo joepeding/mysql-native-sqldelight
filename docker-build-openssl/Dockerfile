@@ -23,22 +23,22 @@ RUN wget --no-check-certificate https://cmake.org/files/v3.12/cmake-3.12.3.tar.g
     cd .. && \
     rm -r cmake-3.12.3
 # Get OpenSSL source (--no-check-certificate because of clock problems breaking SSL?) & install it
-RUN wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz && \
-    tar -xf openssl-3.1.3.tar.gz && \
-    rm openssl-3.1.3.tar.gz && \
-    cd openssl-3.1.3 && \
+RUN wget --no-check-certificate https://www.openssl.org/source/openssl-3.2.1.tar.gz && \
+    tar -xf openssl-3.2.1.tar.gz && \
+    rm openssl-3.2.1.tar.gz && \
+    cd openssl-3.2.1 && \
     ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
     make -j $(nproc) && \
     make install && \
     ldconfig && \
     cd .. && \
-    rm -r openssl-3.1.3
+    rm -r openssl-3.2.1
 # Download MySQL 8 (--no-check-certificate because of clock problems breaking SSL?) from source and install
-RUN wget --no-check-certificate https://dev.mysql.com/get/Downloads/MySQL-8.1/mysql-8.1.0.tar.gz && \
-    tar -xf mysql-8.1.0.tar.gz && \
-    rm mysql-8.1.0.tar.gz && \
+RUN wget --no-check-certificate https://dev.mysql.com/get/Downloads/MySQL-8.3/mysql-8.3.0.tar.gz && \
+    tar -xf mysql-8.3.0.tar.gz && \
+    rm mysql-8.3.0.tar.gz && \
     wget https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_1_77_0.tar.bz2 && \
-    cd mysql-8.1.0 && \
+    cd mysql-8.3.0 && \
     mkdir bld && \
     cd bld && \
     cmake -D CMAKE_C_COMPILER="/opt/rh/devtoolset-8/root/usr/bin/gcc" \
@@ -51,7 +51,6 @@ RUN wget --no-check-certificate https://dev.mysql.com/get/Downloads/MySQL-8.1/my
     make && \
     make install && \
     cd ../.. && \
-    rm -r mysql-8.1.0 && \
+    rm -r mysql-8.3.0 && \
     rm -r boost_1_77_0 && \
     rm boost_1_77_0.tar.bz2
-
