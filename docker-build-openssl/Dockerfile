@@ -12,16 +12,16 @@ RUN yum -y install centos-release-scl && \
     yum -y install wget patchelf ncurses-devel && \
     yum clean all
 # Install Cmake 3
-RUN wget --no-check-certificate https://cmake.org/files/v3.12/cmake-3.12.3.tar.gz && \
-    tar -xf cmake-3.12.3.tar.gz && \
-    rm cmake-3.12.3.tar.gz && \
-    cd cmake-3.12.3 &&  \
+RUN wget --no-check-certificate https://cmake.org/files/v3.14/cmake-3.14.6.tar.gz && \
+    tar -xf cmake-3.14.6.tar.gz && \
+    rm cmake-3.14.6.tar.gz && \
+    cd cmake-3.14.6 &&  \
     ./bootstrap --prefix=/usr/local &&  \
     make -j$(nproc) &&  \
     make install &&  \
     cmake --version && \
     cd .. && \
-    rm -r cmake-3.12.3
+    rm -r cmake-3.14.6
 # Get OpenSSL source (--no-check-certificate because of clock problems breaking SSL?) & install it
 RUN wget --no-check-certificate https://www.openssl.org/source/openssl-3.2.1.tar.gz && \
     tar -xf openssl-3.2.1.tar.gz && \
