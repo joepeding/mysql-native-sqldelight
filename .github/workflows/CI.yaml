@@ -83,7 +83,7 @@ jobs:
 
       - name: Install MySQL 8.1, OpenSSL 3.1 and start MySQL
         run: |
-          brew install mysql@8.1
+          brew install mysql@8.3
           brew install openssl@3.1
           mysql.server start
         if: runner.os != 'Linux'
