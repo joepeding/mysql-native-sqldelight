@@ -14,9 +14,9 @@ jobs:
     strategy:
       # Only 1 parallel job with fail-fast, so if Ubuntu fails the more expensive macOS job is skipped.
       max-parallel: 1
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest' ]
+        os: [ 'ubuntu-latest', 'macos-13', 'macos-14' ]
 
     steps:
       - uses: actions/checkout@v4
@@ -83,8 +83,8 @@ jobs:
 
       - name: Install MySQL 8.1, OpenSSL 3.1 and start MySQL
         run: |
-          brew install mysql@8.1
-          brew install openssl@3.1
+          brew install mysql@8.3
+          brew install openssl@3.2
           mysql.server start
         if: runner.os != 'Linux'
 
